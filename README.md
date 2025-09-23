@@ -1,4 +1,3 @@
-```markdown
 # NetSim - Network Simulation Game App
 
 ---
@@ -14,11 +13,9 @@ A fully functional and responsive **React.js + Vite** web application for simula
 - Vanilla CSS – Custom styles
 - HTML5 Canvas – Network simulation rendering
 
-
 ## 📂 Project Structure
 
 ```
-
 netsim-frontend/                                      # Root folder
 ├── public/                                           # Static files (favicon, manifest, etc.)
 ├── src/                                              # Source code
@@ -64,6 +61,7 @@ netsim-frontend/                                      # Root folder
 ├── postcss.config.js                                 # PostCSS configuration (Tailwind)
 ├── tailwind.config.js                                # Tailwind CSS configuration
 └── README.md                                         # Project README
+```
 
 ## Setup & Run
 
@@ -71,7 +69,7 @@ Install dependencies:
 
 ```bash
 npm install
-````
+```
 
 Run development server:
 
