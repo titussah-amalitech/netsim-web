@@ -1,42 +1,79 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+*{
+  letter-spacing: normal;
+}
+button:hover{
+  cursor: pointer;
+}
+button.dismiss{
+  padding: 5px 10px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+p.indicator{
+  padding: 5px 10px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+div.alerts-container, div.logs-container, div.details-panel{
+  background-color: rgb(30 41 59);
+}
+
+div.dimming-alert{
+  animation: dimming 2.5s infinite ease-in-out;
+}
+
+@keyframes dimming {
+  0% {
+    background-color: rgb(239 68 68 / 0);
   }
-  to {
-    transform: rotate(360deg);
+  25% {
+    background-color: rgb(239 68 68 / 0.33);
+  }
+  50% {
+    background-color: rgb(239 68 68 / 0.67);
+  }
+  75% {
+    background-color: rgb(239 68 68);
   }
 }
+div.logs-search input, div.logs-search select{
+  border-width: 1px;
+  background-color: rgb(15 23 42);
+  outline: none;
+  transition: border 0.3s ease;
+}
+div.logs-search input:focus{
+  border: 2px solid rgb(59 130 246);
+  box-shadow: 0 0 10px rgba(59, 130, 246);
+} 
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+div.logs-search select:focus{
+  border: 2px solid rgb(59 130 246);
+  box-shadow: 0 0 10px rgba(59, 130, 246);
+}
+
+div.log:hover{
+  border-color: aquamarine;
+  transition: border 0.5s ease ;
+}
+
+img.verify{
+  animation: live 2.5s infinite ease-in-out;
+}
+
+@keyframes live {
+  0% {
+    box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.0);
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  25% {
+    box-shadow: 0 -3px 20px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 -2px 20px rgba(255, 255, 255, 1);
+  }
+  75% {
+    box-shadow: 0 -1px 20px rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.0);
+  }
+  
 }

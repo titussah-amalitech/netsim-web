@@ -1,35 +1,143 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { useEffect, useState } from 'react'
+import DeviceStatusIndicator from '../components/DeviceStatusIndicator.jsx'
+import DeviceLogger from '../components/DeviceLogger.jsx'
+import DeviceDetailsPanel from '../components/DeviceDetailsPanel.jsx'
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const now = new Date()
+  const deviceStatus = [
+    {
+      device: 'Database server',
+      message: 'Database Server: High latency: 38ms, Packet loss: 4%',
+      time: now.toLocaleTimeString(),
+      indication: 'High'
+    },
+    {
+      device: 'Workstation 1',
+      message: 'Workstation 1: Performance degraded',
+      time: now.toLocaleTimeString(),
+      indication: 'Medium'
+    },
+    {
+      device: 'Web Server',
+      message: 'Device Workstation 2 status changed from critical to online',
+      time: now.toLocaleTimeString(),
+      indication: 'Low'
+    }
+  ]
+  const [newDeviceStatus, setNewDeviceStatus] = useState([])
+  const [selectedSeverity, setSelectedSeverity] = useState('All Severity')
+  const [allAlerts, setAllAlerts] = useState([])
+  
+  const refereshStatus = () => {
+    const randomStatus = Math.floor(Math.random() * 3)
+    const device = deviceStatus[randomStatus]
+    setNewDeviceStatus(prevState => [device, ...prevState])
+    setAllAlerts(prevState => [device, ...prevState])
+  }
 
+  useEffect(() => {
+    const intervalId = setInterval(refereshStatus, 1000 * 30)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
+  const renderLogs = () => {
+    return (
+      filteredBySeverity.length ?
+        filteredBySeverity.map((device, index) => <DeviceLogger
+              device={device.device}
+              message={device.message}
+              indication={device.indication}
+              time={now.toLocaleTimeString()}
+              date={now.toLocaleDateString()}
+              key={index}
+        />) : selectedSeverity === 'All Severity' ? newDeviceStatus.map((device, index) => <DeviceLogger
+              device={device.name}
+              message={device.message}
+              indication={device.indication}
+              time={now.toLocaleTimeString()}
+              date={now.toLocaleDateString()}
+              key={index}
+        />) : <span className='text-red-400 font-bold'>No {selectedSeverity} Logs </span>
+    )
+  }
+
+  const dismissAlert = (index) => {
+    setAllAlerts(prevState => [
+      ...prevState.slice(0, index),
+      ...prevState.slice(index + 1)
+    ])
+  }
+
+  const cearAllAlerts = () => {
+    setAllAlerts([])
+  }
+
+  const filteredBySeverity = newDeviceStatus.filter(device => device.indication === selectedSeverity)
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className='app mb-8 w-full'>
+      <div className="alerts-container p-8 rounded-3xl max-w-180 ">
+        <div className="flex justify-between">
+          <p className="active-alerts text-white text-3xl font-bold">Active Alerts</p>
+          <div className="flex mt-2">
+            <div className="dimming-alert h-3 w-3 rounded-full mt-2 me-2"></div>
+            <p className='text-gray-400 text-xl'>{newDeviceStatus.length} active</p>
+          </div>
+        </div>
+        <div className="system-logs max-h-100 overflow-auto">
+          {allAlerts.map((dev, index)=> <DeviceStatusIndicator key={index} device={dev.device}
+            message={dev.message}
+            time={dev.time}
+            indication={dev.indication}
+            dismiss={dismissAlert}
+            index={index}
+          />)}
+        </div>
+        <hr className='text-gray-400 mt-8'/>
+        <button className='w-full border border-gray-400 rounded-sm text-gray-400 my-4 py-2 text-xl' onClick={cearAllAlerts}>Clear All Alerts</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+      <div className="logs-container p-8 rounded-3xl mt-8 max-w-180 ">
+        <div className="flex justify-between">
+          <p className="active-alerts text-white text-3xl font-bold mt-1">System Logs</p>
+          <div className="flex mt-2">
+            <p className='text-gray-400 text-xl mt-1'>{selectedSeverity === 'All Severity' ? newDeviceStatus.length : filteredBySeverity.length} entries</p>
+            <button className="dismiss text-gray-400 border rounded-sm font-bold ms-5">Export</button>
+          </div> 
+        </div>
+        <div className="logs-search flex justify-between my-3">
+          <input type="text" placeholder='Search logs...' className='p-3 rounded-sm text-xl w-2/3 border-gray-400 text-white'/>
+          <select name="severity" id="severity" 
+                  className='p-3 rounded-sm text-white text-xl border-gray-400'
+                  value={selectedSeverity}
+                  onChange={(e) => setSelectedSeverity(e.target.value)}
+          >
+            <option value="All Severity">All Severity</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div className="system-logs max-h-100 overflow-auto">
+          {
+            renderLogs()
+          }
+        </div>
+        <hr className='text-gray-400 mt-8'/>
+        <p className="text-gray-400 text-center text-sm my-2">Showing {selectedSeverity === 'All Severity' ? newDeviceStatus.length : filteredBySeverity.length} of {newDeviceStatus.length} log entries</p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <div className="device-details mt-8">
+        <DeviceDetailsPanel device={"Database Server"} 
+          message={"Device Database Server status changed from online to offline"} 
+          date={now.toLocaleDateString()}
+          time={now.toLocaleTimeString()}
+          indication={deviceStatus[Math.floor(Math.random() * 3)].indication}
+        />
+      </div>
+    </div>
   )
 }
 
 export default App
+
