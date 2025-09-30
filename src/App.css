@@ -1,42 +1,18 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+@import "tailwindcss";
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+@theme {
+  --color-network-primary: #3b82f6;
+  --color-network-primary-dark: #1d4ed8;
+  --color-network-secondary: #6366f1;
+  --color-network-accent: #06b6d4;
+  --color-network-success: #10b981;
+  --color-network-warning: #f59e0b;
+  --color-network-error: #ef4444;
+  --color-network-info: #3b82f6;
+  --color-network-dark: #0f172a;
+  --color-network-darker: #020617;
+  --color-network-surface: #1e293b;
+  --color-network-border: #334155;
+  --color-network-text: #94a3b8;
+  --color-network-text-light: #cbd5e1;
 }
