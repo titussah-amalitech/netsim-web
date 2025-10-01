@@ -4,16 +4,14 @@
 button:hover{
   cursor: pointer;
 }
-button.dismiss{
-  padding: 5px 10px;
-}
+
 
 p.indicator{
   padding: 5px 10px;
 }
 
-div.alerts-container, div.logs-container, div.details-panel{
-  background-color: rgb(30 41 59);
+div.alerts-containe, div.logs-container, div.details-panel{
+  background-color: #1f1f1f;
 }
 
 div.dimming-alert{
@@ -36,7 +34,6 @@ div.dimming-alert{
 }
 div.logs-search input, div.logs-search select{
   border-width: 1px;
-  background-color: rgb(15 23 42);
   outline: none;
   transition: border 0.3s ease;
 }
@@ -48,11 +45,6 @@ div.logs-search input:focus{
 div.logs-search select:focus{
   border: 2px solid rgb(59 130 246);
   box-shadow: 0 0 10px rgba(59, 130, 246);
-}
-
-div.log:hover{
-  border-color: aquamarine;
-  transition: border 0.5s ease ;
 }
 
 img.verify{
@@ -76,4 +68,11 @@ img.verify{
     box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.0);
   }
   
+}
+button.clear-all-alerts{
+  transition: 0.2s ease-in-out;
+}
+
+button.clear-all-alerts:hover {
+  background-color: #be6767;
 }

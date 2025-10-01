@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
+:root {
+  --primary-color: #ffffff;
+  --background-color: #f1f1f1;
+}
+
+
+
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #0f172a;
+  /* background-color: #f1f1f1; */
+  /* background-color: #1f1f1f; */
   padding-inline: 5vw;
   padding-top: 1vh;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 #root {
