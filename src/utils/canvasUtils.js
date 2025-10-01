@@ -10,9 +10,9 @@ export const getCanvasCoords = (canvas, clientX, clientY) => {
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  return { 
-    x: (clientX - rect.left) * scaleX, 
-    y: (clientY - rect.top) * scaleY 
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
   };
 };
 
@@ -21,11 +21,11 @@ export const getCanvasCoords = (canvas, clientX, clientY) => {
  */
 export const getScreenCoords = (canvas, canvasX, canvasY) => {
   if (!canvas) return { x: 0, y: 0 };
-  
+
   const rect = canvas.getBoundingClientRect();
   const scaleX = rect.width / canvas.width;
   const scaleY = rect.height / canvas.height;
-  
+
   return {
     x: canvasX * scaleX,
     y: canvasY * scaleY
@@ -51,10 +51,10 @@ export const getDeviceAtPosition = (devices, x, y) => {
 /**
  * Draw grid on canvas
  */
-export const drawGrid = (ctx, width, height) => {
-  ctx.strokeStyle = '#374151';
+export const drawGrid = (ctx, width, height, isDarkMode) => {
+  ctx.strokeStyle = isDarkMode ? '#374151' : '#D1D5DB';
   ctx.lineWidth = 0.5;
-  
+
   // Vertical lines
   for (let x = 0; x <= width; x += GRID_SIZE) {
     ctx.beginPath();
@@ -62,7 +62,7 @@ export const drawGrid = (ctx, width, height) => {
     ctx.lineTo(x, height);
     ctx.stroke();
   }
-  
+
   // Horizontal lines
   for (let y = 0; y <= height; y += GRID_SIZE) {
     ctx.beginPath();
@@ -78,19 +78,19 @@ export const drawGrid = (ctx, width, height) => {
 export const shouldConnect = (device1, device2) => {
   const type1 = device1.device?.type || device1.type;
   const type2 = device2.device?.type || device2.type;
-  
+
   // Router-Switch connections
-  if ((type1 === 'router' && type2 === 'switch') || 
-      (type1 === 'switch' && type2 === 'router')) {
+  if ((type1 === 'router' && type2 === 'switch') ||
+    (type1 === 'switch' && type2 === 'router')) {
     return true;
   }
-  
+
   // Switch-PC/Server connections
-  if ((type1 === 'switch' && (type2 === 'pc' || type2 === 'server')) || 
-      ((type1 === 'pc' || type1 === 'server') && type2 === 'switch')) {
+  if ((type1 === 'switch' && (type2 === 'pc' || type2 === 'server')) ||
+    ((type1 === 'pc' || type1 === 'server') && type2 === 'switch')) {
     return true;
   }
-  
+
   return false;
 };
 
@@ -100,7 +100,7 @@ export const shouldConnect = (device1, device2) => {
 export const drawConnections = (ctx, devices) => {
   ctx.strokeStyle = '#6B7280';
   ctx.lineWidth = 2;
-  
+
   devices.forEach(device1 => {
     devices.forEach(device2 => {
       if (device1._id !== device2._id && shouldConnect(device1, device2)) {

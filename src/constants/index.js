@@ -7,7 +7,11 @@ import {
    Cloud,
    Shield,
    Wifi,
-   Globe
+   Globe,
+   LayoutDashboard,
+   Settings,
+   BookOpen,
+   Trophy
 } from 'lucide-react';
 
 export const DEVICE_TYPES = {
@@ -15,55 +19,55 @@ export const DEVICE_TYPES = {
       name: "Router",
       icon: Router,
       color: "#60A5FA",
-      bgColor: "#2563EB"
+      bgColor: "#1E40AF"
    },
    switch: {
       name: "Switch",
       icon: Grid,
       color: "#34D399",
-      bgColor: "#059669"
+      bgColor: "#047857"
    },
    server: {
       name: "Server",
       icon: Server,
       color: "#A78BFA",
-      bgColor: "#7C3AED"
+      bgColor: "#5B21B6"
    },
    pc: {
       name: "PC",
       icon: Monitor,
       color: "#FBBF24",
-      bgColor: "#D97706"
+      bgColor: "#B45309"
    },
    firewall: {
       name: "Firewall",
       icon: Shield,
       color: "#F87171",
-      bgColor: "#B91C1C"
+      bgColor: "#7F1D1D"
    },
    accessPoint: {
       name: "Access Point",
       icon: Wifi,
       color: "#38BDF8",
-      bgColor: "#0EA5E9"
+      bgColor: "#0369A1"
    },
    database: {
       name: "Database",
       icon: Database,
       color: "#F472B6",
-      bgColor: "#BE185D"
+      bgColor: "#9D174D"
    },
    cloud: {
       name: "Cloud Service",
       icon: Cloud,
       color: "#94A3B8",
-      bgColor: "#475569"
+      bgColor: "#334155"
    },
    internet: {
       name: "Internet",
       icon: Globe,
       color: "#22D3EE",
-      bgColor: "#0E7490"
+      bgColor: "#155E75"
    }
 };
 
@@ -81,8 +85,8 @@ export const CANVAS_CONFIG = {
 };
 
 export const navItems = [
-   { path: "/", label: "Game Dashboard", icon: "🎮" },
-   { path: "/scenario-editor", label: "Scenario Editor", icon: "⚙️" },
-   { path: "/scenarios", label: "Scenario Library", icon: "📚" },
-   { path: "/leaderboard", label: "Leaderboard", icon: "🏆" },
-]
+  { path: "/", label: "Game Dashboard", icon: LayoutDashboard },
+  { path: "/scenario-editor", label: "Scenario Editor", icon: Settings },
+  { path: "/scenarios", label: "Scenario Library", icon: BookOpen },
+  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
+];

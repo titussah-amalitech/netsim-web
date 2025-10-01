@@ -6,7 +6,7 @@ export default {
       "./components/**/*.{ts,tsx}",
       "./features/**/*.{ts,tsx}",
    ],
-   darkMode: "class",
+  darkMode: ["class"],
    theme: {
       extend: {
          borderRadius: {

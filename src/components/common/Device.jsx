@@ -17,7 +17,7 @@ export const Device = ({ type, isSelected, size = 'w-20 h-20' }) => {
          </div>
 
          {/* Device name */}
-         {!isSelected && <span className="text-sm font-semibold text-gray-300">{device.name}</span>}
+         {!isSelected && <span className="text-sm font-semibold text-network-text-darker dark:text-gray-300">{device.name}</span>}
       </div>
    );
 };

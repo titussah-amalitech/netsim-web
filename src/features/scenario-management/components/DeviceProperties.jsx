@@ -36,15 +36,15 @@ export const DeviceProperties = ({
    const Icon = deviceConfig.icon;
 
    return (
-      <div className="bg-gray-800 rounded-lg p-4 border-2 border-blue-500">
-         <h3 className="text-lg font-semibold mb-4 text-blue-400">
+      <div className="bg-network-lighter border border-network-border-light dark:bordr dark:border-network-border dark:bg-network-surface rounded-lg p-4 h-fit">
+         <h3 className="text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">
             Selected Device Properties
          </h3>
 
          <div className="space-y-4">
             {/* Device Name */}
             <div>
-               <label className="block text-sm font-medium text-gray-300 mb-2">
+               <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Device Name
                </label>
                {isEditingName ? (
@@ -53,7 +53,7 @@ export const DeviceProperties = ({
                         type="text"
                         value={tempName}
                         onChange={(e) => setTempName(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-gray-700 border border-blue-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="flex-1 px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
                         onKeyPress={(e) => e.key === 'Enter' && handleSaveName()}
                         onBlur={handleSaveName}
                         autoFocus
@@ -69,12 +69,13 @@ export const DeviceProperties = ({
                   </div>
                ) : (
                   <div className="flex items-center gap-2">
-                     <span className="flex-1 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600">
+                     <span className="flex-1 px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                         {device.device?.name || device.name}
                      </span>
                      <Button
+                        variant=''
                         onClick={handleStartEdit}
-                        className="px-3 py-2 rounded-lg transition-colors"
+                        className="px-3 py-2 rounded-lg transition-colors border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light outline-none focus:ring-0"
                         title="Edit name"
                      >
                         <Edit3 size={16} />
@@ -85,10 +86,10 @@ export const DeviceProperties = ({
 
             {/* Device Type */}
             <div>
-               <label className="block text-sm font-medium text-gray-300 mb-2">
+               <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Device Type
                </label>
-               <div className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600">
+               <div className="flex items-center gap-2 px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                   <Icon size={20} className="text-blue-400" />
                   <span className="capitalize font-medium">{deviceType}</span>
                   <span className="ml-auto text-xs text-gray-400">
@@ -99,15 +100,15 @@ export const DeviceProperties = ({
 
             {/* Position */}
             <div>
-               <label className="block text-sm font-medium text-gray-300 mb-2">
+               <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Position
                </label>
                <div className="grid grid-cols-2 gap-2">
-                  <div className="px-3 py-2 bg-gray-700 rounded-lg border border-gray-600">
+                  <div className="px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                      <span className="text-gray-400 text-xs">X: </span>
                      <span className="font-mono">{device.position.x}px</span>
                   </div>
-                  <div className="px-3 py-2 bg-gray-700 rounded-lg border border-gray-600">
+                  <div className="px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                      <span className="text-gray-400 text-xs">Y: </span>
                      <span className="font-mono">{device.position.y}px</span>
                   </div>
@@ -116,23 +117,23 @@ export const DeviceProperties = ({
 
             {/* Parameters */}
             <div>
-               <label className="block text-sm font-medium text-gray-300 mb-2">
+               <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Parameters
                </label>
                <div className="space-y-2">
-                  <div className="flex justify-between items-center px-3 py-2 bg-gray-700 rounded border border-gray-600">
+                  <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                      <span className="text-sm">Ping Interval:</span>
                      <span className="text-blue-400 font-mono">
                         {device.parameters?.pingInterval || 30}s
                      </span>
                   </div>
-                  <div className="flex justify-between items-center px-3 py-2 bg-gray-700 rounded border border-gray-600">
+                  <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                      <span className="text-sm">Latency Threshold:</span>
                      <span className="text-yellow-400 font-mono">
                         {device.parameters?.latencyThreshold || 100}ms
                      </span>
                   </div>
-                  <div className="flex justify-between items-center px-3 py-2 bg-gray-700 rounded border border-gray-600">
+                  <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
                      <span className="text-sm">Status:</span>
                      <span className={`font-medium ${device.status?.online ? 'text-green-400' : 'text-red-400'
                         }`}>
@@ -145,7 +146,7 @@ export const DeviceProperties = ({
             {/* Delete Button */}
             <button
                onClick={() => onDeleteDevice(device._id)}
-               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-400 hover:bg-red-500 rounded-lg transition-colors cursor-pointer"
             >
                <Trash2 size={16} />
                Delete Device

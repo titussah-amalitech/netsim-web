@@ -9,6 +9,7 @@ import { fetchDevices } from "../../../store/device.slice"
 import { exportScenarioLocal, importScenarioFromFile, saveScenario, } from "../services/scenarioOperations.service"
 import { Alert, Button, Canvas, Modal, } from "../../../components"
 import { DeviceProperties, ScenarioDetails, ScenarioProperties, ToolPalette, } from "../components"
+import { Loader } from "../../../components/common/Loader"
 
 export const ScenarioEditor = () => {
    const dispatch = useDispatch()
@@ -155,11 +156,11 @@ export const ScenarioEditor = () => {
       setModalState((prev) => ({ ...prev, [name]: isOpen }))
 
    /** UI Rendering */
-   if (loading) return <p>Loading devices...</p>
+   if (loading) return <div className="flex items-center justify-center h-full w-full"><Loader /></div>
    if (error) return <p className="text-red-500">Error: {error}</p>
 
    return (
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-network-lighter dark:bg-network-graphite text-white rounded-lg">
          <div className="container mx-auto px-4 py-6">
             {/* Alerts */}
             <div className="space-y-3 mb-4">
@@ -178,7 +179,7 @@ export const ScenarioEditor = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                <div>
-                  <h1 className="text-2xl font-bold">Scenario Editor</h1>
+                  <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-text-light">Scenario Editor</h1>
                   <p className="text-gray-400">
                      Design and configure network scenarios
                   </p>
@@ -186,33 +187,36 @@ export const ScenarioEditor = () => {
 
                <div className="flex gap-3">
                   <Button
+                     variant="outline"
                      onClick={() => toggleModal("export", true)}
-                     className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                      title="Export scenario to JSON file"
                   >
                      <Save size={18} /> Export
                   </Button>
 
                   <Button
-                     variant="success"
+                     variant="outline"
                      onClick={handleSaveScenario}
-                     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                      title="Save scenario to server"
                   >
                      <Save size={18} /> Save
                   </Button>
 
                   <Button
+                     variant="outline"
                      onClick={triggerFileInput}
-                     className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                      title="Import scenario from JSON file"
                   >
                      <Upload size={18} /> Import
                   </Button>
 
                   <Button
+                     variant="outline"
                      onClick={() => toggleModal("clear", true)}
-                     className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                      title="Clear current scenario"
                   >
                      <Trash2 size={18} /> Clear
@@ -229,7 +233,7 @@ export const ScenarioEditor = () => {
             </div>
 
             {/* Main Content */}
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                <div className="space-y-6">
                   <ScenarioProperties
                      scenario={scenario}
@@ -241,16 +245,9 @@ export const ScenarioEditor = () => {
                      selectedTool={selectedTool}
                      onToolSelect={setSelectedTool}
                   />
-                  {selectedDevice && (
-                     <DeviceProperties
-                        device={selectedDevice}
-                        onUpdateDevice={updateDevice}
-                        onDeleteDevice={deleteDevice}
-                     />
-                  )}
                </div>
 
-               <div className="xl:col-span-3">
+               <div className="lg:col-span-2 xl:col-span-3">
                   <Canvas
                      canvasRef={canvasRef}
                      scenario={scenario}
@@ -263,6 +260,13 @@ export const ScenarioEditor = () => {
                      onTouchStart={handleTouchStart}
                   />
                </div>
+               {selectedDevice && (
+                  <DeviceProperties
+                     device={selectedDevice}
+                     onUpdateDevice={updateDevice}
+                     onDeleteDevice={deleteDevice}
+                  />
+               )}
             </div>
          </div>
 

@@ -10,7 +10,7 @@ function MainLayout() {
    const shouldHideSidebar = hideSidebarRoutes.includes(location.pathname);
 
    return (
-      <div className="min-h-screen bg-network-dark flex">
+      <div className="min-h-screen bg-network-lighter dark:bg-network-dark flex">
          {!shouldHideSidebar && <Sidebar />}
 
          <div className="flex-1 flex flex-col">
