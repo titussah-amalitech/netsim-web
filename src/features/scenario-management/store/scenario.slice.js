@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { scenarioService } from "../services";
+// Services for API calls
+// import { scenarioService } from "../services";
+import { scenarioService} from "../../../services/index"
 
 // Fetch all scenarios
 export const fetchScenarios = createAsyncThunk(

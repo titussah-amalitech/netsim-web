@@ -85,7 +85,8 @@ const deviceSlice = createSlice({
       })
       .addCase(fetchDevices.fulfilled, (state, action) => {
         state.loading = false
-        state.devices = action.payload.data || [];
+        state.devices = action.payload // local JSON
+        // state.devices = action.payload.data || []; // from server
       })
       .addCase(fetchDevices.rejected, (state, action) => {
         state.loading = false

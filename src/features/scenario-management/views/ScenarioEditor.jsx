@@ -6,10 +6,10 @@ import { CANVAS_CONFIG } from "../../../constants"
 import { useScenario } from "../hooks/useScenario"
 import { useCanvasInteraction } from "../../../hooks/useCanvasInteraction"
 import { fetchDevices } from "../../../store/device.slice"
-import { exportScenarioLocal, importScenarioFromFile, saveScenario, } from "../services/scenarioOperations.service"
 import { Alert, Button, Canvas, Modal, } from "../../../components"
 import { DeviceProperties, ScenarioDetails, ScenarioProperties, ToolPalette, } from "../components"
 import { Loader } from "../../../components/common/Loader"
+import { exportScenarioLocal, importScenarioFromFile, saveScenario, } from "../services/scenarioOperations.service"
 
 export const ScenarioEditor = () => {
    const dispatch = useDispatch()
