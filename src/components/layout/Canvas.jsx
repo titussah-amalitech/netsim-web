@@ -93,6 +93,7 @@ export const Canvas = ({
                         }}
                      >
                         <Device
+                           name={device?.device?.name || device.name}
                            type={device.device?.type || device.type}
                            isSelected={isSelected}
                            showLabel={false}

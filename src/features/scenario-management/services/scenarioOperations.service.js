@@ -17,6 +17,18 @@ export const validateScenario = (scenario) => {
       errors.push('Time limit must be greater than 0');
    }
 
+   if (!['easy', 'medium', 'hard'].includes(scenario.difficulty?.toLowerCase())) {
+      errors.push('Difficulty must be one of: Easy, Medium, Hard');
+   }
+
+   if (scenario.devices.some(d => d.failureProbability < 0 || d.failureProbability > 100)) {
+      errors.push('Device failure probability must be between 0 and 100%');
+   }
+
+   if (scenario.devices.some(d => d.latencyThreshold <= 0)) {
+      errors.push('Device latency threshold must be greater than 0 ms');
+   }
+
    // Check for devices with duplicate names
    const deviceNames = scenario.devices.map(d => d.device?.name || d.name);
    const duplicateNames = deviceNames.filter((name, index) => deviceNames.indexOf(name) !== index);
