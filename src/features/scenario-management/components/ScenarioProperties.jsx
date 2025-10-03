@@ -1,5 +1,7 @@
 import { Dropdown } from '../../../components/common/Dropdown';
 import { DIFFICULTY_OPTIONS } from '../../../constants';
+import DifficultyBadge from '../../game-simulation/components/DifficultyBadge';
+
 
 export const ScenarioProperties = ({
    scenario,
@@ -34,7 +36,25 @@ export const ScenarioProperties = ({
                onChange={(value) => onUpdateProperty("difficulty", value)}
                placeholder="Select difficulty level"
                className="w-full bg-white"
+               renderSelected={(value) => {
+               const opt = DIFFICULTY_OPTIONS.find((o) => o.value === value)
+               return opt ? (
+                  <div className="flex items-center space-x-2">
+                     <DifficultyBadge level={opt.value} />
+                     <span className="hidden sm:inline">{opt.label}</span>
+                  </div>
+               ) : (
+                  "Select difficulty"
+               )
+               }}
+               renderOption={(option) => (
+               <div className="flex items-center space-x-2">
+                  <DifficultyBadge level={option.value} />
+                  <span>{option.label}</span>
+               </div>
+               )}
             />
+
 
             <input
                type="number"

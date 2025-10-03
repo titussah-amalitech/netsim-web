@@ -9,6 +9,8 @@ const DeviceStatusIndicator = () => {
   const [allAlerts, setAllAlerts] = useState([]);
   const { theme } = useTheme(); 
   const isDarkMode = theme === "dark";
+  const [showClearAlerts, setShowClearAlerts] = useState(false)
+  
 
   const deviceStatus = [
     {
@@ -52,6 +54,7 @@ const DeviceStatusIndicator = () => {
   };
 
   const ActiveAlerts = ({ device, message, time, indication, id }) => {
+    const [showTooltip, setShowTooltip] = useState(false);
     let indColor;
     if (indication === "High") {
       indColor = "var(--color-network-error)";
@@ -123,8 +126,10 @@ const DeviceStatusIndicator = () => {
         </div>
         <div>
           <button
-            className="dismiss rounded-sm font-bold ms-5"
+            className="dismiss rounded-sm font-bold ms-5 cursor-pointer"
             onClick={() => dismissAlert(id)}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
           >
             <FaDeleteLeft
               color={
@@ -135,6 +140,11 @@ const DeviceStatusIndicator = () => {
               size={32}
             />
           </button>
+          {showTooltip && (
+          <div className="absolute  bg-gray-800 text-white text-xs rounded-md px-2 py-1 shadow-lg">
+            Delete Alert
+          </div>
+          )}
         </div>
       </div>
     );
@@ -175,9 +185,12 @@ const DeviceStatusIndicator = () => {
         </div>
       </div>
       <div className="system-logs max-h-100 overflow-auto">
-        {allAlerts.map((dev) => (
+        {allAlerts.length ? allAlerts.map((dev) => (
           <ActiveAlerts key={dev.id} {...dev} />
-        ))}
+        )) : <div className="flex flex-1 justify-center items-center">
+                <span className="text-xl text-yellow-500">No active alerts!</span>
+             </div>
+        }
       </div>
       <hr
         className="mt-8"
@@ -188,7 +201,7 @@ const DeviceStatusIndicator = () => {
         }}
       />
       <button
-        className="clear-all-alerts w-full border rounded-xl my-4 py-2 text-xl"
+        className="clear-all-alerts w-full border rounded-xl my-4 py-2 text-xl cursor-pointer"
         style={{
           color: isDarkMode
             ? "var(--color-network-text-light)"
@@ -196,11 +209,21 @@ const DeviceStatusIndicator = () => {
           borderColor: isDarkMode
             ? "var(--color-network-border-light)"
             : "var(--color-network-border)",
+          display: allAlerts.length ? 'block' : 'none'
         }}
         onClick={clearAllAlerts}
+        onMouseEnter={() => setShowClearAlerts(true)}
+        onMouseLeave={() => setShowClearAlerts(false)}
+        
       >
         Clear All Alerts
       </button>
+      {showClearAlerts && (
+        <div className="absolute left-1/2 bg-gray-800 text-white text-xs rounded-md px-2 py-1 shadow-lg">
+          Delete All Alerts
+        </div>
+      )}
+
     </div>
   );
 };

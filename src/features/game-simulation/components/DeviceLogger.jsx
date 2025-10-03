@@ -195,7 +195,7 @@ const DeviceLogger = () => {
         <select
           name="severity"
           id="severity"
-          className="p-3 border rounded-sm text-xl"
+          className="p-3 border rounded-sm text-xl cursor-pointer"
           value={selectedSeverity}
           onChange={e => setSelectedSeverity(e.target.value)}
           style={{

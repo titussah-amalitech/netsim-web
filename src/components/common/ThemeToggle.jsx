@@ -1,9 +1,11 @@
 import { Sun, Moon, Monitor } from "lucide-react"
 import { Dropdown } from "./Dropdown"
 import { useTheme } from "../../hooks/useTheme"
+import { useState } from "react"
 
 export const ThemeToggle = ({ useSwitch = true }) => {
    const { theme, changeTheme } = useTheme()
+   const [themeTooltip, setThemeTooltip] = useState(false)
 
    const themeOptions = [
       { value: "light", label: "Light", icon: Sun },
@@ -22,23 +24,34 @@ export const ThemeToggle = ({ useSwitch = true }) => {
    // If useSwitch is true, render a toggle switch
    if (useSwitch) {
       return (
-         <button
-            onClick={handleSwitchToggle}
-            className="relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none bg-network-border-light dark:bg-network-border cursor-pointer"
-            aria-label="Toggle theme"
-         >
-            {/* Switch track background */}
-            <span
-               className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-network-graphite transition-transform ${theme === "dark" ? "translate-x-6" : "translate-x-1"}`}
+         <div>
+            <button
+               onClick={handleSwitchToggle}
+               className="relative inline-flex items-center h-6 w-11 rounded-full transition-colors focus:outline-none bg-network-border-light dark:bg-network-border cursor-pointer"
+               aria-label="Toggle theme"
+               onMouseEnter={() => setThemeTooltip(true)}
+               onMouseLeave={() => setThemeTooltip(false)}
             >
-               {/* Icon inside the switch */}
-               {theme === "dark" ? (
-                  <Moon className="w-3 h-3 text-white m-auto mt-0.5" />
-               ) : (
-                  <Sun className="w-3 h-3 text-network-warning m-auto mt-0.5" />
-               )}
-            </span>
-         </button>
+               {/* Switch track background */}
+               <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-network-graphite transition-transform ${theme === "dark" ? "translate-x-6" : "translate-x-1"}`}
+               >
+                  {/* Icon inside the switch */}
+                  {theme === "dark" ? (
+                     <Moon className="w-3 h-3 text-white m-auto mt-0.5" />
+                  ) : (
+                     <Sun className="w-3 h-3 text-network-warning m-auto mt-0.5" />
+                  )}
+               </span>
+            </button>
+            {themeTooltip && (
+               <div className="absolute text-nowrap right-1 bg-gray-800 text-white text-xs rounded-md px-2 py-1 shadow-lg">
+                  {
+                     theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+                  }
+               </div>
+            )}
+         </div>
       )
    }
 
