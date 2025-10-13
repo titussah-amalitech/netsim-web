@@ -33,25 +33,27 @@ export const ToolPalette = ({ devices = [], selectedTool, onToolSelect }) => {
               variant=''
               key={device._id}
               onClick={() => onToolSelect(device)}
-              className={`p-3 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${selectedTool._id === device._id
+              className={`p-3 rounded-lg flex items-center justify-start gap-2 transition-colors cursor-pointer ${selectedTool._id === device._id
                 ? 'bg-blue-600 hover:bg-blue-700'
                 : 'bg-network-lighter border border-network-border-light dark:border-0 dark:bg-network-gray-light dark:bg-network-gray-light dark:hover:bg-gray-600 text-network-text-darker dark:text-network-text-light'
                 }`}
               title={device.name || config.name}
             >
-              <div
+              {/* <div
                 style={{
                   transform: 'scale(0.5)',
                   transformOrigin: 'center',
                 }}
-              >
-                <Device
-                  type={device.type}
-                  isSelected={true}
-                  size="w-10 h-10"
-                  showLabel={false}
-                />
-              </div>
+                className='bg-red-500'
+              > */}
+              <Device
+                type={device.type}
+                isSelected={true}
+                size="w-5 h-5"
+                showLabel={false}
+                showBgColor={false}
+              />
+              {/* </div> */}
               <span className="text-sm mr-2">{device.name || config.name}</span>
             </Button>
           );

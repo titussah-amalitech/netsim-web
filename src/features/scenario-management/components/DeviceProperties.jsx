@@ -251,6 +251,7 @@ export const DeviceProperties = ({
                   {/* Problem Type */}
                   {isEditing ? (
                      <Dropdown
+                        label="Problem Type"
                         selected={selectedProblemType}
                         options={problemTypeOptions}
                         onChange={(value) => setFormData({ ...formData, problemType: value })}
