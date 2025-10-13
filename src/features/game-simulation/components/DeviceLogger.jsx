@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTheme } from '../../../hooks/useTheme'
+import { Dropdown } from '../../../components/common/Dropdown'
 
 const DeviceLogger = () => {
   const now = new Date()
@@ -26,9 +27,11 @@ const DeviceLogger = () => {
   ]
 
   const [newDeviceStatus, setNewDeviceStatus] = useState([])
-  const [selectedSeverity, setSelectedSeverity] = useState('All Severity')
+  const severityArray = ["All Severity", "High", "Medium", "Low"]
+  const [selectedSeverity, setSelectedSeverity] = useState(severityArray[0])
+  
 
-  // ✅ Use global theme from hook
+  
   const { theme } = useTheme()
   const isDarkMode = theme === 'dark'
 
@@ -181,18 +184,18 @@ const DeviceLogger = () => {
         </div>
       </div>
 
-      <div className="logs-search flex justify-between my-3">
+      <div className="logs-search flex justify-between my-3 space-x-2">
         <input
           type="text"
           placeholder="Search logs..."
-          className="p-3 border rounded-sm text-xl w-2/3"
+          className="px-3 py-3 border rounded-sm text-lg w-2/3 max-h-[fit-content]"
           style={{
             color: isDarkMode
               ? 'var(--color-network-text)'
               : 'var(--color-network-text-dark)',
           }}
         />
-        <select
+        {/* <select
           name="severity"
           id="severity"
           className="p-3 border rounded-sm text-xl cursor-pointer"
@@ -219,11 +222,21 @@ const DeviceLogger = () => {
           <option value="Low" className="text-gray-800">
             Low
           </option>
-        </select>
+        </select> */}
+        <Dropdown 
+          options={severityArray}
+          selected={selectedSeverity}
+          onChange={setSelectedSeverity}
+          className="border border-gray-400 rounded-sm text-lg max-h-[fit-content] cursor-pointer max-w-50 "
+        />
       </div>
 
       <div className="system-logs max-h-100 overflow-auto">
-        {renderLogs()}
+        {newDeviceStatus.length ? renderLogs() : 
+          <div className="flex flex-1 justify-center items-center">
+                <span className="text-xl text-yellow-500">No Sytem Logs!</span>
+          </div>
+        }
       </div>
       <hr
         className="mt-4"

@@ -1,4 +1,4 @@
-import { FaDeleteLeft } from "react-icons/fa6";
+import { FaRegTrashAlt } from "react-icons/fa";
 import { TiTick } from "react-icons/ti";
 import { ImCross } from "react-icons/im";
 import { IoWarning } from "react-icons/io5";
@@ -76,17 +76,17 @@ const DeviceStatusIndicator = () => {
         <div className="flex w-5/6">
           <div className="me-4">
             {indication === "High" ? (
-              <ImCross color="var(--color-network-error)" size={24} />
+              <ImCross color="var(--color-network-error)" size={24} className="mt-2"/>
             ) : indication === "Medium" ? (
               <IoWarning color="var(--color-network-warning)" size={32} />
             ) : (
-              <TiTick color="var(--color-network-success)" size={36} />
+              <TiTick color="var(--color-network-success)" size={36} className="mt-2"/>
             )}
           </div>
           <div className="w-3/4">
             <div className="flex">
               <p
-                className="font-extrabold mt-2"
+                
                 style={{
                   color: isDarkMode
                     ? "var(--color-network-text-light)"
@@ -96,7 +96,7 @@ const DeviceStatusIndicator = () => {
                 {device}
               </p>
               <p
-                className="indicator text-white ms-5 rounded-sm font-bold px-2"
+                className="indicator text-white ms-5 rounded-sm px-2 py-1 mt-1"
                 style={{ backgroundColor: indColor }}
               >
                 {indication}
@@ -131,7 +131,7 @@ const DeviceStatusIndicator = () => {
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
           >
-            <FaDeleteLeft
+            <FaRegTrashAlt
               color={
                 isDarkMode
                   ? "var(--color-network-text)"
