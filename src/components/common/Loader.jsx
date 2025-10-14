@@ -1,5 +1,3 @@
-import React from "react";
-
 export const Loader = ({ size = 60, className = "" }) => {
   return (
     <div

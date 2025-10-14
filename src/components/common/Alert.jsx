@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { X, CheckCircle2, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { Button } from "./Button";
 
 export const Alert = ({
    type = "info",
@@ -55,13 +56,14 @@ export const Alert = ({
 
          {/* Close button overlay */}
          {onClose && (
-            <button
+            <Button
+               variant=""
                onClick={onClose}
-               aria-label="Close alert"
+               title="Close alert"
                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 cursor-pointer"
             >
                <X className="h-4 w-4" />
-            </button>
+            </Button>
          )}
       </div>
    );

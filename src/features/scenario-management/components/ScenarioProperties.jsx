@@ -10,7 +10,7 @@ export const ScenarioProperties = ({
 }) => {
    return (
       <div className="bg-network-lighter border border-network-border-light dark:bordr dark:border-network-border dark:bg-network-surface rounded-lg p-4">
-         <h2 className="text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Scenario Properties</h2>
+         <h2 className="flex justify-center text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Scenario Properties</h2>
 
          <div className="space-y-3">
             <input
@@ -18,14 +18,14 @@ export const ScenarioProperties = ({
                placeholder="Scenario Name"
                value={scenario.name}
                onChange={(e) => onUpdateProperty('name', e.target.value)}
-               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
 
             <textarea
                placeholder="Description"
                value={scenario.metadata.description}
                onChange={(e) => onUpdateMetadata('description', e.target.value)}
-               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                rows={3}
             />
 
@@ -60,8 +60,8 @@ export const ScenarioProperties = ({
                type="number"
                placeholder="Time Limit (seconds)"
                value={scenario.timeLimit}
-               onChange={(e) => onUpdateProperty('timeLimit', parseInt(e.target.value) || 0)}
-               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+               onChange={(e) => onUpdateProperty('timeLimit', parseInt(e.target.value))}
+               className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
          </div>
       </div>
