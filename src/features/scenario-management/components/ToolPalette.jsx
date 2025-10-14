@@ -6,7 +6,7 @@ import { Button } from '../../../components';
 export const ToolPalette = ({ devices = [], selectedTool, onToolSelect }) => {
   return (
     <div className="bg-network-lighter border border-network-border-light dark:bordr dark:border-network-border dark:bg-network-surface rounded-lg p-4">
-      <h2 className="text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Devices</h2>
+      <h2 className="flex justify-center text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Devices</h2>
 
       <div className="grid grid-cols-2 gap-3">
         {/* Select Tool */}

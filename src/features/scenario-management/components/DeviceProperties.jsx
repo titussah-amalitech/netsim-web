@@ -102,8 +102,8 @@ export const DeviceProperties = ({
 
    return (
       <div className="bg-network-lighter border border-network-border-light dark:border dark:border-network-border dark:bg-network-surface rounded-lg p-4 h-fit">
-         <h3 className="text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">
-            Selected Device Properties
+         <h3 className="flex justify-center text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">
+            Device Properties
          </h3>
 
          <div className="space-y-4">

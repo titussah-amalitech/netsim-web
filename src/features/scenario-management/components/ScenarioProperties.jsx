@@ -8,7 +8,7 @@ export const ScenarioProperties = ({
 }) => {
    return (
       <div className="bg-network-lighter border border-network-border-light dark:bordr dark:border-network-border dark:bg-network-surface rounded-lg p-4">
-         <h2 className="text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Scenario Properties</h2>
+         <h2 className="flex justify-center text-lg font-semibold mb-4 text-network-text-darker dark:text-network-text-light">Scenario Properties</h2>
 
          <div className="space-y-3">
             <input
