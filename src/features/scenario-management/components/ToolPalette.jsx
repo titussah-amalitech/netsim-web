@@ -39,6 +39,13 @@ export const ToolPalette = ({ devices = [], selectedTool, onToolSelect }) => {
                 }`}
               title={device.name || config.name}
             >
+              {/* <div
+                style={{
+                  transform: 'scale(0.5)',
+                  transformOrigin: 'center',
+                }}
+                className='bg-red-500'
+              > */}
               <Device
                 type={device.type}
                 isSelected={true}
@@ -46,6 +53,7 @@ export const ToolPalette = ({ devices = [], selectedTool, onToolSelect }) => {
                 showLabel={false}
                 showBgColor={false}
               />
+              {/* </div> */}
               <span className="text-sm mr-2">{device.name || config.name}</span>
             </Button>
           );
