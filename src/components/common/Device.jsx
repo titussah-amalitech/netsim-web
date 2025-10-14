@@ -1,6 +1,6 @@
 import { DEVICE_TYPES } from "../../constants";
 
-export const Device = ({ name, type, isSelected, size = 'w-20 h-20' }) => {
+export const Device = ({ name, type, isSelected, showBgColor = true, size = 'w-20 h-20' }) => {
    const device = DEVICE_TYPES[type];
    if (!device) return null;
 
@@ -11,7 +11,7 @@ export const Device = ({ name, type, isSelected, size = 'w-20 h-20' }) => {
          {/* Active circular indicator container */}
          <div
             className={`${size} flex items-center justify-center rounded-full shadow-lg`}
-            style={{ backgroundColor: device.bgColor, color: device.color }}
+            style={{ backgroundColor: showBgColor? device.bgColor : "", color: device.color }}
          >
             <Icon size={36} />
          </div>
