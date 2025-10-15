@@ -6,6 +6,7 @@ import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import DeviceDetailsPanel from './features/game-simulation/components/DeviceDetailsPanel'
 import DeviceLogger from './features/game-simulation/components/DeviceLogger'
 import DeviceStatusIndicator from './features/game-simulation/components/DeviceStatusIndicator'
+import toast, { Toaster } from 'react-hot-toast';
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           </Route>
         </Routes>
       </div>
+      <Toaster position='top-right'/>
     </BrowserRouter>
   )
 }

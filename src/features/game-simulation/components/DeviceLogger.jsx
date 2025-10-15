@@ -195,34 +195,6 @@ const DeviceLogger = () => {
               : 'var(--color-network-text-dark)',
           }}
         />
-        {/* <select
-          name="severity"
-          id="severity"
-          className="p-3 border rounded-sm text-xl cursor-pointer"
-          value={selectedSeverity}
-          onChange={e => setSelectedSeverity(e.target.value)}
-          style={{
-            color: isDarkMode
-              ? 'var(--color-network-text)'
-              : 'var(--color-network-text-dark)',
-            borderColor: isDarkMode
-              ? "var(--color-network-border-light)"
-              : "var(--color-network-border)",
-          }}
-        >
-          <option value="All Severity" className="text-gray-800">
-            All Severity
-          </option>
-          <option value="High" className="text-gray-800">
-            High
-          </option>
-          <option value="Medium" className="text-gray-800">
-            Medium
-          </option>
-          <option value="Low" className="text-gray-800">
-            Low
-          </option>
-        </select> */}
         <Dropdown 
           options={severityArray}
           selected={selectedSeverity}
