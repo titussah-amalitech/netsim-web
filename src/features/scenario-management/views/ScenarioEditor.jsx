@@ -179,7 +179,7 @@ export const ScenarioEditor = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                <div>
-                  <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-text-light">Scenario Editor</h1>
+                  <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">Scenario Editor</h1>
                   <p className="text-gray-400">
                      Design and configure network scenarios
                   </p>

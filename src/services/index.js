@@ -7,6 +7,7 @@ import { EntityService } from "./EntityService.service"
 
 // For local JSON CRUD operations using localStorage
 export const logService = new EntityService("logs");
+export const userService = new EntityService("users");
 export const deviceService = new EntityService("devices");
 export const scenarioService = new EntityService("scenarios");
 export const leaderboardService = new EntityService("leaderboard");
