@@ -19,6 +19,7 @@ export const localStorageService = {
     }
   },
 
+
   // Add item to an array in localStorage
   add: (key, item) => {
     const arr = localStorageService.get(key);
