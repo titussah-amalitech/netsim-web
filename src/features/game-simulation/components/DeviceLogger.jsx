@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTheme } from '../../../hooks/useTheme'
 import { Dropdown } from '../../../components/common/Dropdown'
 
@@ -25,6 +25,8 @@ const DeviceLogger = () => {
       indication: 'Low'
     }
   ]
+
+  
 
   const [newDeviceStatus, setNewDeviceStatus] = useState([])
   const severityArray = ["All Severity", "High", "Medium", "Low"]
@@ -116,9 +118,26 @@ const DeviceLogger = () => {
     )
   }
 
+
+  const [query, setQuery] = useState('');
+  const logs = selectedSeverity === "All Severity" ? newDeviceStatus : filteredBySeverity
+  const filteredLogs = useMemo(() => {
+    if (!query) return logs;
+
+    const lowerQuery = query.toLowerCase();
+    return logs.filter(
+      log =>
+        log.device.toLowerCase().includes(lowerQuery) ||
+        log.message.toLowerCase().includes(lowerQuery) ||
+        log.indication.toLowerCase().includes(lowerQuery)
+    );
+  }, [query, logs]);
+  
+
+
   const renderLogs = () => {
-    return filteredBySeverity.length ? (
-      filteredBySeverity.map((device, index) => (
+    return filteredLogs.length ? (
+      filteredLogs.map((device, index) => (
         <DeviceLogs
           device={device.device}
           message={device.message}
@@ -128,23 +147,20 @@ const DeviceLogger = () => {
           key={index}
         />
       ))
-    ) : selectedSeverity === 'All Severity' ? (
-      newDeviceStatus.map((device, index) => (
-        <DeviceLogs
-          device={device.device}
-          message={device.message}
-          indication={device.indication}
-          time={now.toLocaleTimeString()}
-          date={now.toLocaleDateString()}
-          key={index}
-        />
-      ))
-    ) : (
+    ) : query === "" ? (
       <span className="text-red-400 font-bold">
         No {selectedSeverity} Logs
       </span>
+    ) : ( <span className="text-red-400 font-bold">
+        No logs matches your search {query}
+      </span>
     )
   }
+
+
+  
+
+
 
   return (
     <div
@@ -187,6 +203,8 @@ const DeviceLogger = () => {
         <input
           type="text"
           placeholder="Search logs..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           className="px-3 py-3 border rounded-sm text-lg w-2/3 max-h-[fit-content]"
           style={{
             color: isDarkMode
@@ -226,9 +244,7 @@ const DeviceLogger = () => {
         }}
       >
         Showing{' '}
-        {selectedSeverity === 'All Severity'
-          ? newDeviceStatus.length
-          : filteredBySeverity.length}{' '}
+          {filteredLogs.length}{" "}
         of {newDeviceStatus.length} log entries
       </p>
     </div>
