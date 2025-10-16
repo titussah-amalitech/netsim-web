@@ -7,7 +7,7 @@ export const Sidebar = () => {
   const isGameActive = true;
 
   return (
-    <aside className="w-64 bg-network-lighter border border-network-border-light  dark:bg-network-darker dark:border-network-border">
+    <aside className="w-64 h-full bg-network-lighter border border-network-border-light  dark:bg-network-darker dark:border-network-border">
       <div className="p-6 h-full flex flex-col">
         <div className="flex items-center space-x-3 mb-8">
           <Logo />

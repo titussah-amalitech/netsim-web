@@ -9,7 +9,7 @@ export const Loader = ({ size = 60, className = "" }) => {
       <div className="absolute w-4 h-4 rounded-full bg-network-primary dark:bg-network-primary-light animate-pulse" />
 
       {/* Orbiting nodes */}
-      {[...Array(4)].map((_, i) => (
+      {[...Array(4)]?.map((_, i) => (
         <div
           key={i}
           className={`absolute w-3 h-3 rounded-full bg-network-accent dark:bg-network-secondary animate-network-orbit`}
@@ -20,7 +20,7 @@ export const Loader = ({ size = 60, className = "" }) => {
         />
       ))}
 
-      <style jsx>{`
+      <style >{`
         @keyframes network-orbit {
           0% {
             transform: rotate(0deg) translate(${size / 2}px) rotate(0deg);

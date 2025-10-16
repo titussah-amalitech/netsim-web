@@ -6,9 +6,21 @@ import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import DeviceDetailsPanel from './features/game-simulation/components/DeviceDetailsPanel'
 import DeviceLogger from './features/game-simulation/components/DeviceLogger'
 import DeviceStatusIndicator from './features/game-simulation/components/DeviceStatusIndicator'
-
+import { Leaderboard } from './features/leaderboard/views/Leaderboard'
+import { useEffect } from 'react'
+import { seedDummyData } from './seed'
 
 function App() {
+
+  // TODO: REMOVE THIS LATER
+  // For testing only
+  useEffect(() => {
+    let hasSeeded = false;
+    if (!hasSeeded) {
+      seedDummyData();
+      hasSeeded = true;
+    }
+  }, []);
 
   return (
     <BrowserRouter>
@@ -18,8 +30,9 @@ function App() {
             <Route path='/' element={<GamePage />} />
             <Route path='/scenario-editor' element={<ScenarioEditor />} />
             <Route path='/device-logs' element={<DeviceLogger />} />
+            <Route path='/leaderboard' element={<Leaderboard />} />
             <Route path='/device-status' element={<DeviceStatusIndicator />} />
-            <Route path='/device-details' element={<DeviceDetailsPanel/>} />
+            <Route path='/device-details' element={<DeviceDetailsPanel />} />
           </Route>
         </Routes>
       </div>
