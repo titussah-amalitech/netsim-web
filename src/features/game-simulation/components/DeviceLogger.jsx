@@ -70,13 +70,12 @@ const DeviceLogger = () => {
         }}
       >
         <div
-          className="me-4 h-5 w-5 rounded-full mt-1"
+          className="me-4 h-3 w-3 rounded-full mt-1"
           style={{ backgroundColor: indColor }}
         ></div>
         <div className="w-3/4">
           <div className="flex">
             <p
-              className="font-extrabold mt-1"
               style={{
                 color: isDarkMode
                   ? 'var(--color-network-text-light)'
@@ -86,7 +85,7 @@ const DeviceLogger = () => {
               {device}
             </p>
             <p
-              className="indicator text-white ms-5 rounded-sm font-bold px-2"
+              className="indicator flex justify-center items-center text-white ms-5 rounded-sm px-2"
               style={{ backgroundColor: indColor }}
             >
               {indication}
@@ -203,7 +202,7 @@ const DeviceLogger = () => {
         />
       </div>
 
-      <div className="system-logs max-h-100 overflow-auto">
+      <div className="system-logs max-h-60 overflow-auto">
         {newDeviceStatus.length ? renderLogs() : 
           <div className="flex flex-1 justify-center items-center">
                 <span className="text-xl text-yellow-500">No Sytem Logs!</span>
