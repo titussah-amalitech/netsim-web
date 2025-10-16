@@ -9,7 +9,7 @@ export const GamePage = () => {
   
 
   const devices = [
-   { name: "Router-01", status: "yellow" },
+   // { name: "Router-01", status: "yellow" },
    { name: "Switch-02", status: "red" },
   ];
 
