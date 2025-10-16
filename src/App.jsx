@@ -5,21 +5,21 @@ import { ScenarioEditor } from './features/scenario-management'
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 
 import { Leaderboard } from './features/leaderboard/views/Leaderboard'
-import { useEffect } from 'react'
-import { seedDummyData } from './seed'
+// import { useEffect } from 'react'
+// import { seedDummyData } from './seed'
 
 
 function App() {
 
   // TODO: REMOVE THIS LATER
   // For testing only
-  useEffect(() => {
-    let hasSeeded = false;
-    if (!hasSeeded) {
-      seedDummyData();
-      hasSeeded = true;
-    }
-  }, []);
+  // useEffect(() => {
+  //   let hasSeeded = false;
+  //   if (!hasSeeded) {
+  //     seedDummyData();
+  //     hasSeeded = true;
+  //   }
+  // }, []);
 
   return (
     <BrowserRouter>

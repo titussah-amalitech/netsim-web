@@ -4,11 +4,16 @@ import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
 import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
+import { StatCard } from "../../../components/common/StatCard";
+import { useTheme } from "../../../hooks/useTheme";
 
 export const GamePage = () => {
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [currentPlayer, setCurrentPlayer] = useState(null);
+   const { theme } = useTheme()
+   const isDarkMode = theme === 'dark'
 
+   
    console.log(currentPlayer)
 
    const handleNewGame = () => {
@@ -58,11 +63,19 @@ export const GamePage = () => {
          />
       </div>}
       {currentPlayer && <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full">
-            <Button onClick={alertStatus}>Show Alerts</Button>
+            <Button onClick={alertStatus} className="mb-2">Show Alerts</Button>
 
             {showAlerts && <RealTimeAlerts devices={devices} />}
-
-            <div className="h-120" />
+            <StatCard label={"Your Highest Score"} value={"123"}/>
+            <div className="flex justify-center items-center  p-8 rounded-3xl mt-8  h-120"
+                  style={{
+                  backgroundColor: isDarkMode
+                     ? 'var(--color-network-gray-light)'
+                     : 'var(--color-network-light)'
+                  }}
+            >
+               <span>Game field</span>
+            </div>
             <DeviceLogger />
          </div>
       }

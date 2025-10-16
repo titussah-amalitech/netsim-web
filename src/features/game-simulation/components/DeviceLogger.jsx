@@ -164,7 +164,7 @@ const DeviceLogger = () => {
 
   return (
     <div
-      className="logs-container p-8 rounded-3xl mt-8 max-w-180"
+      className="logs-container p-8 rounded-3xl mt-8 "
       style={{
         backgroundColor: isDarkMode
           ? 'var(--color-network-gray-light)'
@@ -220,7 +220,7 @@ const DeviceLogger = () => {
         />
       </div>
 
-      <div className="system-logs max-h-60 overflow-auto">
+      <div className="system-logs max-h-100 overflow-auto">
         {newDeviceStatus.length ? renderLogs() : 
           <div className="flex flex-1 justify-center items-center">
                 <span className="text-xl text-yellow-500">No Sytem Logs!</span>
