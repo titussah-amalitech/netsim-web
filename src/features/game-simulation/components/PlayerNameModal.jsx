@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createUser, fetchUsers } from "../../../store/user.slice";
 import { Button, Modal } from "../../../components";
+import { Play } from "lucide-react";
 
-export const PlayerNameModal = ({ isOpen, onClose, onPlayerCreated }) => {
+export const PlayerNameModal = ({ isOpen, onClose, onStart }) => {
    const [playerName, setPlayerName] = useState('');
    const [error, setError] = useState('');
    const dispatch = useDispatch();
@@ -20,10 +21,11 @@ export const PlayerNameModal = ({ isOpen, onClose, onPlayerCreated }) => {
       if (!name || name.trim() === '') {
          return 'Player name cannot be empty';
       }
-      
+
       return null;
    };
 
+   // Submit player name and start the game
    const handleSubmit = async () => {
       const validationError = validateName(playerName);
       if (validationError) {
@@ -33,17 +35,18 @@ export const PlayerNameModal = ({ isOpen, onClose, onPlayerCreated }) => {
 
       try {
          const result = await dispatch(createUser({ name: playerName.trim() })).unwrap();
+         
+         // Pass the created user to onStart
+         onStart(result);
          setPlayerName('');
          setError('');
-         if (onPlayerCreated) {
-            onPlayerCreated(result);
-         }
          onClose();
-      // eslint-disable-next-line no-unused-vars
+         // eslint-disable-next-line no-unused-vars
       } catch (err) {
          setError('Failed to create player. Please try again.');
       }
    };
+
 
    const handleNameChange = (e) => {
       setPlayerName(e.target.value);
@@ -86,6 +89,7 @@ export const PlayerNameModal = ({ isOpen, onClose, onPlayerCreated }) => {
                   variant="secondary"
                   onClick={onClose}
                   disabled={loading}
+                  title="Cancel Game"
                >
                   Cancel
                </Button>
@@ -93,9 +97,11 @@ export const PlayerNameModal = ({ isOpen, onClose, onPlayerCreated }) => {
                   type="button"
                   variant="primary"
                   onClick={handleSubmit}
+                  title="Start New Game"
+                  className="gap-2"
                   disabled={loading || !playerName.trim()}
                >
-                  {loading ? 'Starting...' : 'Start Game'}
+                  <Play size={20} /> <span>Start Game</span>
                </Button>
             </div>
          </div>

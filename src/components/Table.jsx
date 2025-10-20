@@ -16,7 +16,7 @@ export const DataTable = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+    <div className="bg-network-lighter dark:bg-network-surface rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
