@@ -1,12 +1,11 @@
 import { useState } from "react";
 
 import { PlayerNameModal } from "../components/PlayerNameModal";
-import { Button, Canvas } from "../../../components";
+import { Button } from "../../../components";
 import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
 import { StatCard } from "../../../components/common/StatCard";
 import { useTheme } from "../../../hooks/useTheme";
-import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 
 export const GamePage = () => {
    const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,13 +29,13 @@ export const GamePage = () => {
    
    const devices = [
       { name: "Router-01", status: "yellow" },
-      { name: "Switch-02", status: "red" },
+      // { name: "Switch-02", status: "red" },
    ];
    
    const alertStatus = () => {
    setShowAlerts(prev => !prev)
    }
-   console.log("Rendering GamePage, currentPlayer:", currentPlayer);
+
    return (<div>
          {!currentPlayer && <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
          <div className="max-w-4xl mx-auto">
@@ -67,14 +66,15 @@ export const GamePage = () => {
             <Button onClick={alertStatus} className="mb-2">Show Alerts</Button>
 
             {showAlerts && <RealTimeAlerts devices={devices} />}
-            <div className="flex justify-center items-center   rounded-3xl mt-8 h-200"
+            <StatCard label={"Your Highest Score"} value={"123"}/>
+            <div className="flex justify-center items-center  p-8 rounded-3xl mt-8  h-120"
                   style={{
                   backgroundColor: isDarkMode
                      ? 'var(--color-network-gray-light)'
                      : 'var(--color-network-light)'
                   }}
             >
-               <GameSimulationEnvironment />
+               <span>Game field</span>
             </div>
             <DeviceLogger />
          </div>
