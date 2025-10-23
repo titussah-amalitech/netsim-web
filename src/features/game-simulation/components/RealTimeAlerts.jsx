@@ -55,7 +55,7 @@ const RealTimeAlerts = ({ devices }) => {
     problemDevices.forEach((device, index) => {
       setTimeout(() => {
         showAlert(device);
-      }, index * 1500); 
+      }, index * 7000); 
     });
   }, [devices]);
 
