@@ -10,4 +10,4 @@ export const logService = new EntityService("logs");
 export const userService = new EntityService("users");
 export const deviceService = new EntityService("devices");
 export const scenarioService = new EntityService("scenarios");
-export const leaderboardService = new EntityService("leaderboard");
+export const leaderboardService = new EntityService("scores");

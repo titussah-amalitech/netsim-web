@@ -1,14 +1,6 @@
 import { StatCard } from "../../../components/common/StatCard";
 
-export const LeaderboardStats = ({ entries = [] }) => {
-   if (!entries || entries.length === 0) return null;
-
-   const highestScore = entries[0]?.score ?? 0;
-   const averageScore =
-      entries.length > 0
-         ? Math.round(entries.reduce((sum, e) => sum + e.score, 0) / entries.length)
-         : 0;
-   const totalPlayers = entries.length;
+export const LeaderboardStats = ({ highestScore, averageScore, totalPlayers }) => {
 
    return (
       <div className="my-8 grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -25,9 +25,9 @@ export const Leaderboard = () => {
       if (rank === 1)
          return <FaCrown className="text-yellow-500 text-2xl" />;
       if (rank === 2)
-         return <FaMedal className="text-purple-500 text-2xl" />;
+         return <FaMedal className="text-purple-400 text-2xl" />;
       if (rank === 3)
-         return <Award className="text-orange-500 text-2xl" />;
+         return <Award className="text-network-warning text-2xl" />;
       return `#${rank}`;
    };
 
@@ -110,7 +110,7 @@ export const Leaderboard = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                <div className="flex items-center gap-3">
                   <div className="p-3 bg-network-light dark:bg-network-text-darker rounded-lg">
-                     <Trophy className="w-8 h-8 dark:text-network-lighter" />
+                     <Trophy className="w-8 h-8 text-network-warning" />
                   </div>
                   <div>
                      <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">

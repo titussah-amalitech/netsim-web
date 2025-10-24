@@ -1,0 +1,72 @@
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchLeaderboard } from "../../leaderboard/store/leaderboard.slice";
+import { PlayerNameModal } from "../components/PlayerNameModal";
+import { Button } from "../../../components";
+import RealTimeAlerts from "../components/RealTimeAlerts";
+import DeviceLogger from "../components/DeviceLogger";
+import { useStartGame } from "../hooks/useStartGame";
+import { officeNetworkScenario } from "../../../seed/scenarioSample";
+
+export const GameHub = () => {
+   const dispatch = useDispatch();
+   const { currentUser } = useSelector((state) => state.users);
+   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [showAlerts, setShowAlerts] = useState(false);
+
+   const devices = [
+      { name: "Router-01", status: "yellow" },
+      // { name: "Switch-02", status: "red" },
+   ];
+
+   const { startGame } = useStartGame(() => (''), officeNetworkScenario);
+
+   const handleNewGame = () => setIsModalOpen(true);
+
+   const handleStartGame = async (user) => {
+      await startGame(user);
+   };
+
+   useEffect(() => {
+      dispatch(fetchLeaderboard());
+   }, [dispatch]);
+
+   return (
+      <div>
+         {!currentUser ? (
+            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
+               <div className="max-w-4xl mx-auto">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+                     <h1 className="text-3xl flex justify-center font-bold text-gray-900 dark:text-white mb-6">
+                        Network Simulation Game
+                     </h1>
+
+                     <div className="text-center py-8">
+                        <Button onClick={handleNewGame} variant="primary" size="large">
+                           New Game
+                        </Button>
+                     </div>
+                  </div>
+               </div>
+
+               <PlayerNameModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  onStart={handleStartGame}
+               />
+            </div>
+         ) : (
+            <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full">
+               <Button onClick={() => setShowAlerts((prev) => !prev)}>
+                  Show Alerts
+               </Button>
+
+               {showAlerts && <RealTimeAlerts devices={devices} />}
+
+
+               <DeviceLogger />
+            </div>
+         )}
+      </div>
+   );
+};
