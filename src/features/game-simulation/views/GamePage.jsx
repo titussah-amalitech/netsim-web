@@ -6,6 +6,7 @@ import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
 import { StatCard } from "../../../components/common/StatCard";
 import { useTheme } from "../../../hooks/useTheme";
+import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 
 export const GamePage = () => {
    const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,15 +67,9 @@ export const GamePage = () => {
             <Button onClick={alertStatus} className="mb-2">Show Alerts</Button>
 
             {showAlerts && <RealTimeAlerts devices={devices} />}
-            <StatCard label={"Your Highest Score"} value={"123"}/>
-            <div className="flex justify-center items-center  p-8 rounded-3xl mt-8  h-120"
-                  style={{
-                  backgroundColor: isDarkMode
-                     ? 'var(--color-network-gray-light)'
-                     : 'var(--color-network-light)'
-                  }}
+            <div className="p-4 h-200"
             >
-               <span>Game field</span>
+               <p>Game Simulation Environment</p>
             </div>
             <DeviceLogger />
          </div>
