@@ -3,8 +3,7 @@ import { MainLayout } from './components'
 import { ScenarioEditor } from './features/scenario-management'
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import { Leaderboard } from './features/leaderboard/views/Leaderboard'
-import { useEffect } from 'react'
-import { seedDummyData } from './seed'
+
 import { GameHub } from './features/game-simulation/views/GameHub'
 
 function App() {

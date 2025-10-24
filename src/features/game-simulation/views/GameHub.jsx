@@ -5,8 +5,8 @@ import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
 import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
-import { useStartGame } from "../hooks/useStartGame";
-import { officeNetworkScenario } from "../../../seed/scenarioSample";
+// import { useStartGame } from "../hooks/useStartGame";
+// import { officeNetworkScenario } from "../../../seed/scenarioSample";
 
 export const GameHub = () => {
    const dispatch = useDispatch();
@@ -19,7 +19,7 @@ export const GameHub = () => {
       // { name: "Switch-02", status: "red" },
    ];
 
-   const { startGame } = useStartGame(() => (''), officeNetworkScenario);
+   // const { startGame } = useStartGame(() => (''), officeNetworkScenario);
 
    const handleNewGame = () => setIsModalOpen(true);
 
