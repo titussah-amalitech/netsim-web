@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useTheme } from '../../../hooks/useTheme'
 import { Dropdown } from '../../../components/common/Dropdown'
+import { DeviceLogCard } from '../components/DeviceLogCard'
 
 const DeviceLogger = () => {
   const now = new Date()
@@ -26,25 +26,19 @@ const DeviceLogger = () => {
     }
   ]
 
-  
-
   const [newDeviceStatus, setNewDeviceStatus] = useState([])
   const severityArray = ["All Severity", "High", "Medium", "Low"]
   const [selectedSeverity, setSelectedSeverity] = useState(severityArray[0])
   
-
-  
-  const { theme } = useTheme()
-  const isDarkMode = theme === 'dark'
-
-  const refereshStatus = () => {
+ 
+  const refreshStatus = () => {
     const randomStatus = Math.floor(Math.random() * 3)
     const device = deviceStatus[randomStatus]
-    setNewDeviceStatus(prevState => [device, ...prevState])
+    setNewDeviceStatus(prev => [device, ...prev])
   }
 
   useEffect(() => {
-    const intervalId = setInterval(refereshStatus, 1000 * 30)
+    const intervalId = setInterval(refreshStatus, 1000 * 30)
     return () => clearInterval(intervalId)
   }, [])
 
@@ -52,200 +46,80 @@ const DeviceLogger = () => {
     device => device.indication === selectedSeverity
   )
 
-  const DeviceLogs = ({ device, message, time, indication, date }) => {
-    let indColor
-    if (indication === 'High') {
-      indColor = 'var(--color-network-error)'
-    } else if (indication === 'Medium') {
-      indColor = 'var(--color-network-warning)'
-    } else {
-      indColor = 'var(--color-network-success)'
-    }
-
-    return (
-      <div
-        className="log rounded-xl flex p-4 my-4 w-full"
-        style={{
-          backgroundColor: isDarkMode
-            ? 'var(--color-network-surface)'
-            : 'var(--color-network-surface-light)'
-        }}
-      >
-        <div
-          className="me-4 h-3 w-3 rounded-full mt-1"
-          style={{ backgroundColor: indColor }}
-        ></div>
-        <div className="w-3/4">
-          <div className="flex">
-            <p
-              style={{
-                color: isDarkMode
-                  ? 'var(--color-network-text-light)'
-                  : 'var(--color-network-text-darker)'
-              }}
-            >
-              {device}
-            </p>
-            <p
-              className="indicator flex justify-center items-center text-white ms-5 rounded-sm px-2"
-              style={{ backgroundColor: indColor }}
-            >
-              {indication}
-            </p>
-          </div>
-          <p
-            className="text-xs mt-2"
-            style={{
-              color: isDarkMode
-                ? 'var(--color-network-text)'
-                : 'var(--color-network-text-dark)'
-            }}
-          >
-            {message}
-          </p>
-          <p
-            className="text-xs mt-1"
-            style={{
-              color: isDarkMode
-                ? 'var(--color-network-text)'
-                : 'var(--color-network-text-dark)'
-            }}
-          >
-            {date}, {time}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState('')
   const logs = selectedSeverity === "All Severity" ? newDeviceStatus : filteredBySeverity
   const filteredLogs = useMemo(() => {
-    if (!query) return logs;
-
-    const lowerQuery = query.toLowerCase();
+    if (!query) return logs
+    const lowerQuery = query.toLowerCase()
     return logs.filter(
       log =>
         log.device.toLowerCase().includes(lowerQuery) ||
         log.message.toLowerCase().includes(lowerQuery) ||
         log.indication.toLowerCase().includes(lowerQuery)
-    );
-  }, [query, logs]);
-  
-
+    )
+  }, [query, logs])
 
   const renderLogs = () => {
-    return filteredLogs.length ? (
-      filteredLogs.map((device, index) => (
-        <DeviceLogs
-          device={device.device}
-          message={device.message}
-          indication={device.indication}
-          time={now.toLocaleTimeString()}
-          date={now.toLocaleDateString()}
-          key={index}
-        />
-      ))
-    ) : query === "" ? (
-      <span className="text-red-400 font-bold">
-        No {selectedSeverity} Logs
-      </span>
-    ) : ( <span className="text-red-400 font-bold">
-        No logs matches your search {query}
-      </span>
-    )
+    if (!filteredLogs.length) {
+      return (
+        <div className="text-center py-6">
+          <span className="text-red-400 font-bold">
+            {query ? `No logs match your search: "${query}"` : `No ${selectedSeverity} logs`}
+          </span>
+        </div>
+      )
+    }
+
+    return filteredLogs.map((device, index) => (
+      <DeviceLogCard
+        device={device.device}
+        message={device.message}
+        indication={device.indication}
+        time={now.toLocaleTimeString()}
+        date={now.toLocaleDateString()}
+        key={index}
+      />
+    ))
   }
 
-
-  
-
-
-
   return (
-    <div
-      className="logs-container p-8 rounded-3xl mt-8 "
-      style={{
-        backgroundColor: isDarkMode
-          ? 'var(--color-network-gray-light)'
-          : 'var(--color-network-light)'
-      }}
-    >
-      <div className="flex justify-between">
-        <p
-          className="active-alerts text-3xl font-bold mt-1"
-          style={{
-            color: isDarkMode
-              ? 'var(--color-network-text-light)'
-              : 'var(--color-network-text-darker)'
-          }}
-        >
+    <div className="rounded-lg bg-network-lighter dark:bg-network-surface border border-network-border-light dark:border-network-border shadow-sm p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <p className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">
           System Logs
         </p>
-        <div className="flex mt-2">
-          <p
-            className="text-xl mt-1"
-            style={{
-              color: isDarkMode
-                ? 'var(--color-network-text)'
-                : 'var(--color-network-text-dark)'
-            }}
-          >
-            {selectedSeverity === 'All Severity'
-              ? newDeviceStatus.length
-              : filteredBySeverity.length}{' '}
-            entries
+        <div className="flex items-center gap-4">
+          <p className="text-lg text-network-text-dark dark:text-gray-400">
+            {logs.length} entries
           </p>
+          <Dropdown
+            options={severityArray}
+            selected={selectedSeverity}
+            onChange={setSelectedSeverity}
+            className="border border-network-border-light dark:border-network-border rounded p-2 text-sm"
+          />
         </div>
       </div>
 
-      <div className="logs-search flex justify-between my-3 space-x-2">
+      {/* Search */}
+      <div className="mb-4 flex gap-2">
         <input
           type="text"
           placeholder="Search logs..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="px-3 py-3 border rounded-sm text-lg w-2/3 max-h-[fit-content]"
-          style={{
-            color: isDarkMode
-              ? 'var(--color-network-text)'
-              : 'var(--color-network-text-dark)',
-          }}
-        />
-        <Dropdown 
-          options={severityArray}
-          selected={selectedSeverity}
-          onChange={setSelectedSeverity}
-          className="border border-gray-400 rounded-sm text-lg max-h-[fit-content] cursor-pointer max-w-50 "
+          onChange={e => setQuery(e.target.value)}
+          className="w-full p-2 rounded border border-network-border-light dark:border-network-border bg-network-surface-light dark:bg-network-surface text-network-text-dark dark:text-network-text"
         />
       </div>
 
-      <div className="system-logs max-h-100 overflow-auto">
-        {newDeviceStatus.length ? renderLogs() : 
-          <div className="flex flex-1 justify-center items-center">
-                <span className="text-xl text-yellow-500">No Sytem Logs!</span>
-          </div>
-        }
+      {/* Logs */}
+      <div className="overflow-auto max-h-[60vh]">
+        {renderLogs()}
       </div>
-      <hr
-        className="mt-4"
-        style={{
-          borderColor: isDarkMode
-            ? "var(--color-network-border-light)"
-            : "var(--color-network-border)",
-        }}
-      />
-      <p
-        className="text-center text-sm my-2"
-        style={{
-          color: isDarkMode
-            ? 'var(--color-network-text)'
-            : 'var(--color-network-text-dark)'
-        }}
-      >
-        Showing{' '}
-          {filteredLogs.length}{" "}
-        of {newDeviceStatus.length} log entries
+
+      <p className="text-center text-sm my-2 text-network-text-dark dark:text-network-text mt-5">
+        Showing {filteredLogs.length} of {logs.length} log entries
       </p>
     </div>
   )
