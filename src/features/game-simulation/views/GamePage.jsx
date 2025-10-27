@@ -63,14 +63,13 @@ export const GamePage = () => {
             onPlayerCreated={handlePlayerCreated}
          />
       </div>}
-      {currentPlayer && <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full">
-            <Button onClick={alertStatus} className="mb-2">Show Alerts</Button>
+      {currentPlayer && <div className="flex flex-col bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full">
+            <Button onClick={alertStatus} className="mb-2 ms-auto">Show Alerts</Button>
 
             {showAlerts && <RealTimeAlerts devices={devices} />}
-            <div className="p-4 h-200"
-            >
-               <p>Game Simulation Environment</p>
-            </div>
+         <div className="">
+               <GameSimulationEnvironment />
+         </div>
             <DeviceLogger />
          </div>
       }

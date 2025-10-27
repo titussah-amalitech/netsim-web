@@ -6,7 +6,33 @@ export const fetchLeaderboard = createAsyncThunk(
    "leaderboard/fetchAll",
    async (_, thunkAPI) => {
       try {
-         const entries = await leaderboardService.getAll();
+            let entries = await leaderboardService.getAll();
+
+            // If no entries are present (first run), seed with dummy data so the
+            // leaderboard page shows meaningful content and uses localStorage.
+            if (!entries || entries.length === 0) {
+               const dummyScores = [
+                  { name: "Titus", score: 1905, timestamp: new Date().toISOString(), id: Date.now() + 1 },
+                  { name: "Ama", score: 1587, timestamp: new Date().toISOString(), id: Date.now() + 2 },
+                  { name: "Kojo", score: 1204, timestamp: new Date().toISOString(), id: Date.now() + 3 },
+                  { name: "Lee", score: 1108, timestamp: new Date().toISOString(), id: Date.now() + 4 },
+                  { name: "Nana", score: 998, timestamp: new Date().toISOString(), id: Date.now() + 5 },
+                  { name: "Yaw", score: 863, timestamp: new Date().toISOString(), id: Date.now() + 6 },
+                  { name: "Efua", score: 741, timestamp: new Date().toISOString(), id: Date.now() + 7 },
+                  { name: "Akosua", score: 665, timestamp: new Date().toISOString(), id: Date.now() + 8 },
+                  { name: "Kwame", score: 589, timestamp: new Date().toISOString(), id: Date.now() + 9 },
+                  { name: "Mensah", score: 531, timestamp: new Date().toISOString(), id: Date.now() + 10 },
+                  { name: "Adwoa", score: 402, timestamp: new Date().toISOString(), id: Date.now() + 11 },
+                  { name: "Kofi", score: 378, timestamp: new Date().toISOString(), id: Date.now() + 12 },
+                  { name: "Selina", score: 256, timestamp: new Date().toISOString(), id: Date.now() + 13 },
+                  { name: "Dela", score: 142, timestamp: new Date().toISOString(), id: Date.now() + 14 },
+                  { name: "Ebo", score: 76, timestamp: new Date().toISOString(), id: Date.now() + 15 },
+               ];
+
+               // Save directly to localStorage so EntityService can read them
+               localStorage.setItem("leaderboard", JSON.stringify(dummyScores));
+               entries = dummyScores;
+            }
          // Sort by score descending and take top 10
          const sorted = entries
             .sort((a, b) => b.score - a.score)
