@@ -1,6 +1,6 @@
 import './App.css'
 import { MainLayout } from './components'
-import { ScenarioEditor } from './features/scenario-management'
+import { ScenarioEditor, ScenarioLibrary } from './features/scenario-management'
 import { Route, BrowserRouter, Routes } from 'react-router-dom'
 import { Leaderboard } from './features/leaderboard/views/Leaderboard'
 
@@ -24,6 +24,7 @@ function App() {
           <Route element={<MainLayout />} >
             <Route path='/' element={<GameHub />} />
             <Route path='/scenario-editor' element={<ScenarioEditor />} />
+            <Route path='/scenario-library' element={<ScenarioLibrary />} />
             <Route path='/leaderboard' element={<Leaderboard />} />
           </Route>
         </Routes>

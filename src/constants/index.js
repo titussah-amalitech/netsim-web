@@ -87,6 +87,6 @@ export const CANVAS_CONFIG = {
 export const navItems = [
   { path: "/", label: "Game Dashboard", icon: LayoutDashboard },
   { path: "/scenario-editor", label: "Scenario Editor", icon: Settings },
-  { path: "/scenarios", label: "Scenario Library", icon: BookOpen },
+  { path: "/scenario-library", label: "Scenario Library", icon: BookOpen },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
