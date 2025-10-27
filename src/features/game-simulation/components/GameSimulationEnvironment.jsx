@@ -12,43 +12,62 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import CountdownTimer from './CountDown';
 import { DeviceNode } from '../../../components/common/DeviceNode';
-// Define nodeTypes outside of render so the object identity is stable across
-// renders — React Flow warns when nodeTypes/edgeTypes are recreated each render.
+import { TEST_SCENARIO } from '../constants';
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = () => {
 
   // === Nodes ===
-  const [nodes, setNodes] = useState([
-    {
-      id: '1',
-      type: 'deviceNode',
-      position: { x: 50, y: 100 },
-      data: { label: <div className="p-2 rounded">Router 1</div> },
-      sourcePosition: 'right',
-    },
-    {
-      id: '2',
-      type: 'deviceNode',
-      position: { x: 350, y: 100 },
-      data: { label: <div className="p-2 rounded" onClick={() => console.log("clicked")}>Router 2</div> },
-      targetPosition: 'left',
-      sourcePosition: 'right',
-    },
-    {
-      id: '3',
-      type: 'deviceNode',
-      position: { x: 600, y: 100 },
-      data: { label: <div className="p-2 rounded">Router 3</div> },
-      targetPosition: 'left',
-    },
-  ]);
+const [nodes, setNodes] = useState(
+  TEST_SCENARIO.devices.map((device) => ({
+      id: device.id, // use "id" instead of "_id"
+      type: "deviceNode", // custom ReactFlow node type
+      position: { x: device.location.x, y: device.location.y },
+      data: {
+        label: (
+          <div
+            className={`
+              p-2 rounded font-medium text-sm text-white text-center rounded-full
+              ${
+                device.status === "red"
+                  ? "bg-red-500"
+                  : device.status === "yellow"
+                  ? "bg-yellow-400 text-black"
+                  : "bg-green-500"
+              }
+            `}
+          >
+            {<  device.icon  size={24}/>}
+          </div>
+        ),
+        device, // pass the entire device object for later logic (optional)
+      },
+      sourcePosition: "right",
+      targetPosition: "left",
+      draggable: true,
+    }))
+  );
 
   // === Edges ===
-  const [edges, setEdges] = useState([
-    { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#16a34a', strokeWidth: 2 } },
-    { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#16a34a', strokeWidth: 2 } },
-  ]);
+  const [edges, setEdges] = useState(
+    TEST_SCENARIO.devices.flatMap((device) =>
+      device.connections.map((targetId) => ({
+        id: `e${device.id}-${targetId}`,
+        source: device.id,
+        target: targetId,
+        animated: true,
+        style: {
+          stroke:
+            device.status === "red"
+              ? "#ef4444" // red
+              : device.status === "yellow"
+              ? "#eab308" // yellow
+              : "#16a34a", // green (default)
+          strokeWidth: 2,
+        },
+      }))
+    )
+  );
 
   // === Handlers ===
   const onNodesChange = useCallback(
@@ -71,19 +90,19 @@ const GameSimulationEnvironment = () => {
       <div className="flex flex-wrap gap-2 ms-auto">
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: 0</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(dev => dev.data.device.status === "red").length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: 0</p>
+          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(dev => dev.data.device.status === "yellow").length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: 3</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(dev => dev.data.device.status === "green").length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <GoStack size={24} className="text-network-primary mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">All: 3</p>
+          <p className="dark:text-network-light font-bold text-nowrap">All: {nodes.length}</p>
         </div>
       </div>
 

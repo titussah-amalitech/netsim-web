@@ -3,9 +3,9 @@ import { Handle, Position } from "reactflow";
 
 export const DeviceNode = ({ data }) => {
   return (
-    <div className="bg-network-surface border border-green-400 text-center rounded-md shadow-md p-3 w-32">
+    <div className="bg-network-surface border border-green-400 text-center rounded-full p-2 shadow-md">
       {/* this is your node content */}
-      <div className="font-medium text-sm text-gray-800 dark:text-network-light">
+      <div className="font-medium text-sm text-gray-800 dark:text-network-light rounded-full">
         {data.label || "Device"}
       </div>
 
