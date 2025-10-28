@@ -1,5 +1,6 @@
 import { createScenario, exportScenario, } from "../store/scenario.slice"
 import { handleError } from "../../../utils/errorHandler"
+import { scenarioService } from "../../../services";
 
 // Validate scenario before save/export
 export const validateScenario = (scenario) => {
@@ -67,7 +68,7 @@ export const getScenarioStats = (scenario) => {
 };
 
 // Save scenario to server
-export const saveScenario = async (scenario, dispatch, showAlert) => {
+export const saveScenario = async (scenario, dispatch, showAlert, clearScenario) => {
    try {
       const validation = validateScenario(scenario)
       if (!validation.isValid) {
@@ -77,6 +78,7 @@ export const saveScenario = async (scenario, dispatch, showAlert) => {
 
       const resultAction = await dispatch(createScenario(scenario))
       if (createScenario.fulfilled.match(resultAction)) {
+         clearScenario()
          showAlert("success", "Save Successful", "Scenario saved to server!")
       } else {
          throw new Error(resultAction.payload)
@@ -159,5 +161,29 @@ export const importScenarioFromFile = async (file) => {
    } catch (err) {
       handleError(err, "ImportScenario")
       return { isValid: false, errors: ["Invalid JSON file"], scenario: null }
+   }
+}
+
+// Update existing scenario on server
+export const updateScenario = async (scenario, dispatch, showAlert, onSuccess) => {
+   try {
+      const validation = validateScenario(scenario)
+      if (!validation.isValid) {
+         showAlert("error", "Update Failed", validation.errors.join("\n"))
+         return
+      }
+
+      if (!scenario.id) {
+         showAlert("error", "Update Failed", "Scenario ID is missing")
+         return
+      }
+
+      // Call the service directly to update
+      await scenarioService.update(scenario.id, scenario)
+      showAlert("success", "Update Successful", "Scenario updated successfully!")
+      if (onSuccess) onSuccess()
+   } catch (err) {
+      handleError(err, "UpdateScenario")
+      showAlert("error", "Update Failed", err.message)
    }
 }

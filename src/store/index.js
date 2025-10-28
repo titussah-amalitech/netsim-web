@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import deviceReducer from "./device.slice";
 import userReducer from "./user.slice";
 import scoreSlice from "../features/game-simulation/store/score.slice";
+import scenariosReducer from "../features/scenario-management/store/scenario.slice";
 import leaderboardReducer from "../features/leaderboard/store/leaderboard.slice";
 
 export const store = configureStore({
@@ -9,7 +10,7 @@ export const store = configureStore({
       users: userReducer,
       score: scoreSlice,
       devices: deviceReducer,
-      // scenarios: scenariosReducer,
+      scenarios: scenariosReducer,
       leaderboard: leaderboardReducer,
    }
 })

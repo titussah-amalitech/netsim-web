@@ -1,23 +1,29 @@
 import { TOOLS } from "../constants"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import { useSearchParams, useNavigate } from "react-router-dom"
 import { Save, Upload, Trash2 } from "lucide-react"
 import { CANVAS_CONFIG } from "../../../constants"
 import { useScenario } from "../hooks/useScenario"
 import { useCanvasInteraction } from "../../../hooks/useCanvasInteraction"
 import { fetchDevices } from "../../../store/device.slice"
-import { Alert, Button, Canvas, Modal, } from "../../../components"
-import { DeviceProperties, ScenarioDetails, ScenarioProperties, ToolPalette, } from "../components"
+import { Alert, Button, Canvas, Modal } from "../../../components"
+import { DeviceProperties, ScenarioDetails, ScenarioProperties, ToolPalette } from "../components"
 import { Loader } from "../../../components/common/Loader"
-import { exportScenarioLocal, importScenarioFromFile, saveScenario, } from "../services/scenarioOperations.service"
+import { exportScenarioLocal, importScenarioFromFile, saveScenario, updateScenario } from "../services/scenarioOperations.service"
+import { fetchScenarioById } from "../store/scenario.slice"
 
 export const ScenarioEditor = () => {
    const dispatch = useDispatch()
+   const navigate = useNavigate()
+   const [searchParams] = useSearchParams()
    const fileInputRef = useRef(null)
 
    const [alerts, setAlerts] = useState([])
    const [pendingScenario, setPendingScenario] = useState(null)
    const [selectedTool, setSelectedTool] = useState(TOOLS.SELECT)
+   const [isEditMode, setIsEditMode] = useState(false)
+   const [loadingScenario, setLoadingScenario] = useState(false)
    const [modalState, setModalState] = useState({
       clear: false,
       import: false,
@@ -59,6 +65,7 @@ export const ScenarioEditor = () => {
       onDeviceSelect: setSelectedDevice,
    })
 
+
    /** Fetch devices on mount */
    useEffect(() => {
       dispatch(fetchDevices())
@@ -93,13 +100,48 @@ export const ScenarioEditor = () => {
    const removeAlert = useCallback(
       (id) => setAlerts((prev) => prev.filter((a) => a.id !== id)),
       []
-   );
+   )
+
+   /** Load scenario from URL if id parameter exists */
+   useEffect(() => {
+      const scenarioId = searchParams.get("id")
+
+      if (scenarioId) {
+         setLoadingScenario(true)
+         setIsEditMode(true)
+
+         // Dispatch Redux thunk to fetch scenario by ID
+         dispatch(fetchScenarioById(scenarioId))
+            .unwrap()
+            .then((data) => {
+               if (data) {
+                  setScenario(data)
+                  showAlert("success", "Scenario Loaded", `Editing: ${data.name}`)
+               } else {
+                  showAlert("error", "Load Failed", "Scenario not found")
+                  navigate("/scenario-editor")
+               }
+            })
+            .catch((err) => {
+               showAlert("error", "Load Failed", err.message || "Failed to load scenario")
+               navigate("/scenario-editor")
+            })
+            .finally(() => {
+               setLoadingScenario(false)
+            })
+      }
+   }, [searchParams, dispatch, setScenario, navigate, showAlert])
 
    /** Scenario operations */
-   const handleSaveScenario = useCallback(
-      () => saveScenario(scenario, dispatch, showAlert),
-      [scenario, dispatch, showAlert]
-   );
+   const handleSaveScenario = useCallback(() => {
+      if (isEditMode) {
+         updateScenario(scenario, dispatch, showAlert, () => {
+            navigate('/scenario-library')
+         })
+      } else {
+         saveScenario(scenario, dispatch, showAlert, clearScenario)
+      }
+   }, [scenario, dispatch, showAlert, clearScenario, isEditMode, navigate])
 
    const confirmExport = useCallback(() => {
       if (!scenario) {
@@ -108,14 +150,14 @@ export const ScenarioEditor = () => {
       }
       exportScenarioLocal(scenario, showAlert)
       setModalState((prev) => ({ ...prev, export: false }))
-   }, [scenario, showAlert]);
+   }, [scenario, showAlert])
 
    const handleImportScenario = useCallback(async (event) => {
       const file = event.target.files?.[0]
       if (!file) return
 
       try {
-         const { isValid, errors, scenario: imported } = await importScenarioFromFile(file);
+         const { isValid, errors, scenario: imported } = await importScenarioFromFile(file)
 
          if (!isValid) {
             showAlert("error", "Import Failed", errors.join("\n"))
@@ -129,13 +171,14 @@ export const ScenarioEditor = () => {
       } finally {
          event.target.value = ""
       }
-   }, [showAlert]);
+   }, [showAlert])
 
    const confirmImportScenario = useCallback(() => {
       if (!pendingScenario) return
 
       setScenario(pendingScenario)
       setSelectedDevice(null)
+      setIsEditMode(false)
       showAlert("success", "Import Successful", "Scenario loaded successfully.")
 
       setPendingScenario(null)
@@ -144,9 +187,11 @@ export const ScenarioEditor = () => {
 
    const confirmClear = useCallback(() => {
       clearScenario()
+      setIsEditMode(false)
+      navigate('/scenario-editor', { replace: true })
       showAlert("info", "Scenario Cleared", "The scenario has been reset.")
       setModalState((prev) => ({ ...prev, clear: false }))
-   }, [clearScenario, showAlert])
+   }, [clearScenario, showAlert, navigate])
 
    /** File upload trigger */
    const triggerFileInput = () => fileInputRef.current?.click()
@@ -156,7 +201,14 @@ export const ScenarioEditor = () => {
       setModalState((prev) => ({ ...prev, [name]: isOpen }))
 
    /** UI Rendering */
-   if (loading) return <div className="flex items-center justify-center h-full w-full"><Loader /></div>
+   if (loading || loadingScenario) {
+      return (
+         <div className="flex items-center justify-center h-full w-full min-h-screen">
+            <Loader />
+         </div>
+      )
+   }
+
    if (error) return <p className="text-red-500">Error: {error}</p>
 
    return (
@@ -164,9 +216,9 @@ export const ScenarioEditor = () => {
          <div className="container mx-auto px-4 py-6">
             {/* Alerts */}
             <div className="space-y-3 mb-4">
-               {alerts.map((a) => (
+               {alerts.map((a, idx) => (
                   <Alert
-                     key={a.id}
+                     key={`${a.id} - ${idx}`}
                      type={a.type}
                      title={a.title}
                      onClose={() => removeAlert(a.id)}
@@ -179,9 +231,11 @@ export const ScenarioEditor = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                <div>
-                  <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">Scenario Editor</h1>
+                  <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">
+                     {isEditMode ? 'Edit Scenario' : 'Scenario Editor'}
+                  </h1>
                   <p className="text-gray-400">
-                     Design and configure network scenarios
+                     {isEditMode ? `Editing: ${scenario.name}` : 'Design and configure network scenarios'}
                   </p>
                </div>
 
@@ -199,9 +253,9 @@ export const ScenarioEditor = () => {
                      variant="outline"
                      onClick={handleSaveScenario}
                      className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                     title="Save scenario to server"
+                     title={isEditMode ? "Update scenario on server" : "Save scenario to server"}
                   >
-                     <Save size={18} /> Save
+                     <Save size={18} /> {isEditMode ? 'Update' : 'Save'}
                   </Button>
 
                   <Button
@@ -249,6 +303,7 @@ export const ScenarioEditor = () => {
 
                <div className="lg:col-span-2 xl:col-span-3">
                   <Canvas
+                     key={scenario?.id || scenario?.name || "canvas"}
                      canvasRef={canvasRef}
                      scenario={scenario}
                      selectedTool={selectedTool}
@@ -339,4 +394,4 @@ export const ScenarioEditor = () => {
          </Modal>
       </div>
    )
-};
+}
