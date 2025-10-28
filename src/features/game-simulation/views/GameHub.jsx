@@ -5,6 +5,7 @@ import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
 import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
+import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 // import { useStartGame } from "../hooks/useStartGame";
 // import { officeNetworkScenario } from "../../../seed/scenarioSample";
 
@@ -63,7 +64,7 @@ export const GameHub = () => {
 
                {showAlerts && <RealTimeAlerts devices={devices} />}
 
-
+               <GameSimulationEnvironment />
                <DeviceLogger />
             </div>
          )}
