@@ -7,9 +7,12 @@ import { Dropdown } from '../../../components/common/Dropdown';
 export const DeviceProperties = ({
    device,
    onUpdateDevice,
-   onDeleteDevice
+   onDeleteDevice,
+   isEditingMode = false,
+   isSimulation = false,
 }) => {
-   const [isEditing, setIsEditing] = useState(false);
+   const [isEditing, setIsEditing] = useState(isEditingMode);
+   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 30)
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
@@ -131,7 +134,7 @@ export const DeviceProperties = ({
                <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Device Type
                </label>
-               {isEditing ? (
+               {isEditing && !isSimulation ? (
                   <Dropdown
                      selected={selectedDeviceType}
                      options={deviceTypeOptions}
@@ -192,12 +195,18 @@ export const DeviceProperties = ({
                </label>
                <div className="space-y-2">
                   {/* Ping Interval - Read Only */}
-                  <div className="px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
+                  <div className="ps-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Ping Interval:</span>
-                        <span className="text-blue-400 font-mono">
+                        <span className="text-sm text-nowrap my-1">Ping Interval:</span>
+                        {!isSimulation ? (<span className="text-blue-400 font-mono">
                            {device.parameters?.pingInterval || 30}s
-                        </span>
+                        </span>) : (
+                           <input type="text" 
+                           value={pingInterval}
+                           onChange={(e) => setPingInterval(e.target.value)}
+                           className='w-full h-full px-4 py-2 text-right border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400'
+                           />
+                        )}
                      </div>
                   </div>
 
@@ -249,7 +258,7 @@ export const DeviceProperties = ({
                   )}
 
                   {/* Problem Type */}
-                  {isEditing ? (
+                  {!isSimulation && (isEditing ? (
                      <Dropdown
                         label="Problem Type"
                         selected={selectedProblemType}
@@ -264,7 +273,7 @@ export const DeviceProperties = ({
                         <span className="text-sm">Problem Type:</span>
                         <span className="text-purple-400">{selectedProblemType?.label}</span>
                      </div>
-                  )}
+                  ))}
 
                   {/* Status - Read Only */}
                   <div className="px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
@@ -287,16 +296,16 @@ export const DeviceProperties = ({
                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-network-success hover:bg-network-success/80 text-white rounded-lg transition-colors cursor-pointer"
                      title="Save device properties changes"
                   >
-                     Save
+                     {isSimulation ? "Apply" : "Save"}
                   </Button>
-                  <button
+                  {!isSimulation && <button
                      variant=""
                      onClick={handleCancel}
                      className="px-3 py-2 bg-network-gray-light hover:bg-network-gray-light/70 text-white rounded-lg transition-colors cursor-pointer"
                      title='Cancel editing device properties'
                   >
                      Cancel
-                  </button>
+                  </button>}
                </div>
             ) : (
                <>
