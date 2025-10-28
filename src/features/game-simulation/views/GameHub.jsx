@@ -12,6 +12,9 @@ import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 export const GameHub = () => {
    const dispatch = useDispatch();
    const { currentUser } = useSelector((state) => state.users);
+   // TODO: USE THE `selectedScenario` WHEN USER WANTS TO SIMULATE A SCENARIO FROM THE EDITOR
+   // const { selectedScenario} = useSelector((state) => state.scenarios)
+
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [showAlerts, setShowAlerts] = useState(false);
 
@@ -24,8 +27,9 @@ export const GameHub = () => {
 
    const handleNewGame = () => setIsModalOpen(true);
 
+   // eslint-disable-next-line no-unused-vars
    const handleStartGame = async (user) => {
-      await startGame(user);
+      // await startGame(user);
    };
 
    useEffect(() => {
