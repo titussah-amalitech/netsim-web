@@ -1,7 +1,4 @@
-import { CiServer } from "react-icons/ci";
-import { IoServer } from "react-icons/io5";
-import { GiServerRack } from "react-icons/gi";
-import { SiLinuxserver } from "react-icons/si";
+
 
 export const TEST_SCENARIO = {
   name: "University Network Outage",
@@ -201,4 +198,4 @@ export const officeNetworkScenario = {
     createdAt: "2025-10-06T14:08:34.050Z",
   },
 };
-gi
+
