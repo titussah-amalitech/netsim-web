@@ -18,11 +18,12 @@ import { DEVICE_TYPES } from '../../../constants';
 import { DeviceProperties } from '../../scenario-management/components';
 const nodeTypes = { deviceNode: DeviceNode };
 
-const GameSimulationEnvironment = () => {
+const GameSimulationEnvironment = ({ scenario }) => {
 const [deviceToEdit, setDeviceToEdit] = useState(null);
   // Nodes 
+  const currentScenario = scenario || officeNetworkScenario;
 const [nodes, setNodes] = useState(
-  officeNetworkScenario.devices.map((device) => ({
+  currentScenario.devices.map((device) => ({
       id: device._id, // use "id" instead of "_id"
       type: "deviceNode", // custom ReactFlow node type
       position: { x: device.position.x, y: device.position.y },
@@ -64,8 +65,8 @@ const [nodes, setNodes] = useState(
 
   // Edges 
   const [edges, setEdges] = useState(
-    officeNetworkScenario.devices.flatMap((device) =>
-      device.connections.map((targetId) => ({
+    currentScenario.devices.flatMap((device) =>
+      device?.connections.map((targetId) => ({
         id: `e${device._id}-${targetId}`,
         source: device._id,
         target: targetId,
@@ -106,15 +107,15 @@ const [nodes, setNodes] = useState(
       <div className="flex flex-wrap gap-2 ms-auto">
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(dev => dev.data.device.status === "red").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(dev => !dev.data.device.status.online).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(dev => dev.data.device.status === "yellow").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(dev => dev.data.device.status.latency > 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(dev => dev.data.device.status === "green").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(dev => dev.data.device.status.online && dev.data.device.status.latency <= 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <GoStack size={24} className="text-network-primary mr-2" />

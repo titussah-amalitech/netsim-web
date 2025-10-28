@@ -13,7 +13,7 @@ export const GameHub = () => {
    const dispatch = useDispatch();
    const { currentUser } = useSelector((state) => state.users);
    // TODO: USE THE `selectedScenario` WHEN USER WANTS TO SIMULATE A SCENARIO FROM THE EDITOR
-   // const { selectedScenario} = useSelector((state) => state.scenarios)
+   const { selectedScenario} = useSelector((state) => state.scenarios)
 
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [showAlerts, setShowAlerts] = useState(false);
@@ -67,8 +67,8 @@ export const GameHub = () => {
                </Button>
 
                {showAlerts && <RealTimeAlerts devices={devices} />}
-
-               <GameSimulationEnvironment />
+               {console.log('Selected Scenario in GameHub:', selectedScenario)  }
+               <GameSimulationEnvironment scenario={selectedScenario}/>
                <DeviceLogger />
             </div>
          )}
