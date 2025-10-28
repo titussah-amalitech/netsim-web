@@ -1,14 +1,25 @@
 import { NavLink } from "react-router-dom";
 import { navItems } from "../../constants";
-import { Logo } from "../common";
+import { Button, Logo } from "../common";
 import { ThemeToggle } from "../common/ThemeToggle";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUsers } from "../../store/user.slice";
+import { LogOut } from "lucide-react";
 
 export const Sidebar = () => {
+  const dispatch = useDispatch();
+  const { currentUser } = useSelector((state) => state.users);
   const isGameActive = true;
 
+  const handleSignOut = () => {
+    dispatch(clearUsers());
+    window.location.reload(); // refresh to trigger PlayerNameModal again
+  };
+
   return (
-    <aside className="w-64 h-full bg-network-lighter border border-network-border-light  dark:bg-network-darker dark:border-network-border">
+    <aside className="w-64 h-full bg-network-lighter border border-network-border-light dark:bg-network-darker dark:border-network-border">
       <div className="p-6 h-full flex flex-col">
+        {/* Logo & App Info */}
         <div className="flex items-center space-x-3 mb-8">
           <Logo />
           <div>
@@ -17,6 +28,7 @@ export const Sidebar = () => {
           </div>
         </div>
 
+        {/* Navigation Links */}
         <nav className="space-y-2">
           {navItems.map((item) => (
             <NavLink
@@ -37,6 +49,7 @@ export const Sidebar = () => {
           ))}
         </nav>
 
+        {/* Game Status */}
         {isGameActive && (
           <div className="mt-8 p-4 bg-network-surface-light rounded-lg dark:bg-network-surface">
             <div className="flex items-center space-x-2 mb-2">
@@ -49,8 +62,20 @@ export const Sidebar = () => {
           </div>
         )}
 
-        <div className="mt-auto">
+        {/* Bottom Section */}
+        <div className="mt-auto space-y-4">
           <ThemeToggle useSwitch={false} />
+
+          {currentUser && (
+            <Button
+              onClick={handleSignOut}
+              className="flex w-full px-4 py-2 bg-red-400/80 hover:bg-red-400 text-white gap-2 rounded-lg text-sm font-medium transition-colors"
+              title='Sign Out'
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          )}
         </div>
       </div>
     </aside>

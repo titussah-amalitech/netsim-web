@@ -2,7 +2,7 @@ import { TOOLS } from "../constants"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { Save, Upload, Trash2 } from "lucide-react"
+import { Save, Upload, Trash2, Play } from "lucide-react"
 import { CANVAS_CONFIG } from "../../../constants"
 import { useScenario } from "../hooks/useScenario"
 import { useCanvasInteraction } from "../../../hooks/useCanvasInteraction"
@@ -10,8 +10,8 @@ import { fetchDevices } from "../../../store/device.slice"
 import { Alert, Button, Canvas, Modal } from "../../../components"
 import { DeviceProperties, ScenarioDetails, ScenarioProperties, ToolPalette } from "../components"
 import { Loader } from "../../../components/common/Loader"
-import { exportScenarioLocal, importScenarioFromFile, saveScenario, updateScenario } from "../services/scenarioOperations.service"
-import { fetchScenarioById } from "../store/scenario.slice"
+import { exportScenarioLocal, importScenarioFromFile, saveScenario, updateScenario, validateScenario } from "../services/scenarioOperations.service"
+import { fetchScenarioById, setSelectedScenario } from "../store/scenario.slice"
 
 export const ScenarioEditor = () => {
    const dispatch = useDispatch()
@@ -30,7 +30,11 @@ export const ScenarioEditor = () => {
       export: false,
    })
 
+   const { selectedScenario } = useSelector((state) => state.scenarios)
    const { devices, loading, error } = useSelector((state) => state.devices)
+   const { currentUser } = useSelector((state) => state.users);
+   const isAdmin = currentUser?.role === "admin";
+
 
    const {
       scenario,
@@ -102,6 +106,15 @@ export const ScenarioEditor = () => {
       []
    )
 
+   useEffect(() => {
+      // Load previously selected scenario if user comes back from simulation
+      if (selectedScenario) {
+         setScenario(selectedScenario)
+         setIsEditMode(true) // Treat it like an editable scenario
+         showAlert("info", "Scenario Loaded", `Loaded previously selected scenario: ${selectedScenario.name}`)
+      }
+   }, [selectedScenario, setScenario, showAlert])
+
    /** Load scenario from URL if id parameter exists */
    useEffect(() => {
       const scenarioId = searchParams.get("id")
@@ -134,7 +147,7 @@ export const ScenarioEditor = () => {
 
    /** Scenario operations */
    const handleSaveScenario = useCallback(() => {
-      if (isEditMode) {
+      if (isEditMode && scenario?.id) {
          updateScenario(scenario, dispatch, showAlert, () => {
             navigate('/scenario-library')
          })
@@ -193,6 +206,19 @@ export const ScenarioEditor = () => {
       setModalState((prev) => ({ ...prev, clear: false }))
    }, [clearScenario, showAlert, navigate])
 
+   const handleSimulateScenario = useCallback(() => {
+      // Validate scenario before running
+      const validation = validateScenario(scenario)
+
+      if (!validation.isValid) {
+         showAlert("error", "Run Failed", validation.errors.join("\n"))
+         return
+      }
+
+      dispatch(setSelectedScenario(scenario))
+      navigate('/')
+   }, [scenario, dispatch, navigate, showAlert])
+
    /** File upload trigger */
    const triggerFileInput = () => fileInputRef.current?.click()
 
@@ -232,40 +258,50 @@ export const ScenarioEditor = () => {
             <div className="flex justify-between items-center mb-6">
                <div>
                   <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">
-                     {isEditMode ? 'Edit Scenario' : 'Scenario Editor'}
+                     {(isEditMode && !!scenario?.id) ? 'Edit Scenario' : 'Scenario Editor'}
                   </h1>
                   <p className="text-gray-400">
-                     {isEditMode ? `Editing: ${scenario.name}` : 'Design and configure network scenarios'}
+                     {(isEditMode && !!scenario?.id) ? `Editing: ${scenario.name}` : 'Design and configure network scenarios'}
                   </p>
                </div>
 
                <div className="flex gap-3">
                   <Button
-                     variant="outline"
-                     onClick={() => toggleModal("export", true)}
-                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                     title="Export scenario to JSON file"
-                  >
-                     <Save size={18} /> Export
-                  </Button>
-
-                  <Button
-                     variant="outline"
-                     onClick={handleSaveScenario}
-                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                     title={isEditMode ? "Update scenario on server" : "Save scenario to server"}
-                  >
-                     <Save size={18} /> {isEditMode ? 'Update' : 'Save'}
-                  </Button>
-
-                  <Button
-                     variant="outline"
-                     onClick={triggerFileInput}
-                     className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     variant="primary"
+                     onClick={handleSimulateScenario}
+                     className=" px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                      title="Import scenario from JSON file"
                   >
-                     <Upload size={18} /> Import
+                     <Play className="w-4 h-4" /> Simulate
                   </Button>
+
+                  {isAdmin && <>
+                     <Button
+                        variant="outline"
+                        onClick={() => toggleModal("export", true)}
+                        className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        title="Export scenario to JSON file"
+                     >
+                        <Save size={18} /> Export
+                     </Button>
+
+                     <Button
+                        variant="outline"
+                        onClick={handleSaveScenario}
+                        className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        title={(isEditMode && !!scenario?.id) ? "Update scenario on server" : "Save scenario to server"}
+                     >
+                        <Save size={18} /> {(isEditMode && !!scenario?.id) ? 'Update' : 'Save'}
+                     </Button>
+                     <Button
+                        variant="outline"
+                        onClick={triggerFileInput}
+                        className="bg-network-surface px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        title="Import scenario from JSON file"
+                     >
+                        <Upload size={18} /> Import
+                     </Button>
+                  </>}
 
                   <Button
                      variant="outline"

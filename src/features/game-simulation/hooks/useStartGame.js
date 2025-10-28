@@ -6,8 +6,6 @@ export const useStartGame = (addLog, scenario) => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.users);
 
-  console.log(currentUser)
-
   const startGame = useCallback(async (user) => {
     // Use passed user or fallback to currentUser from state
     const gameUser = user || currentUser;

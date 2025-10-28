@@ -85,6 +85,12 @@ const scenarioSlice = createSlice({
     selectedScenario: null,
   },
   reducers: {
+    setSelectedScenario: (state, action) => {
+      state.selectedScenario = action.payload;
+    },
+    clearSelectedScenario: (state) => {
+      state.selectedScenario = null;
+    },
     clearScenarios: (state) => {
       state.scenarios = [];
       state.selectedScenario = null;
@@ -98,7 +104,8 @@ const scenarioSlice = createSlice({
       })
       .addCase(fetchScenarios.fulfilled, (state, action) => {
         state.loading = false;
-        state.scenarios = action.payload || [];
+        // Reverse scenarios array so the most recently added scenario appears first
+        state.scenarios = (action.payload || []).slice().reverse();
       })
       .addCase(fetchScenarios.rejected, (state, action) => {
         state.loading = false;
@@ -147,5 +154,5 @@ const scenarioSlice = createSlice({
   },
 });
 
-export const { clearScenarios } = scenarioSlice.actions;
+export const { clearScenarios, setSelectedScenario, clearSelectedScenario } = scenarioSlice.actions;
 export default scenarioSlice.reducer;

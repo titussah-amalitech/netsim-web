@@ -12,14 +12,13 @@ export const ScenarioLibrary = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
+   const { currentUser } = useSelector((state) => state.users);
    const { scenarios, loading, error } = useSelector((state) => state.scenarios);
-   // TODO: UPDATE THE USER FOR ADMIN LOGIC
-   // const userRole = useSelector((state) => state.auth?.user?.role || "user");
-   // const isAdmin = userRole === "admin";
-   const isAdmin = true;
 
    const [alerts, setAlerts] = useState([]);
    const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+   const isAdmin = currentUser?.role === "admin";
 
    useEffect(() => {
       dispatch(fetchScenarios());
@@ -42,9 +41,7 @@ export const ScenarioLibrary = () => {
    const hardScenarios = scenarios?.filter(s => s.difficulty === "hard").length || 0;
 
    const handleRunScenario = (scenario) => {
-      // TODO: Navigate to canvas view with scenario - implement when canvas view is ready
-      showAlert("info", "Run Scenario", `Running scenario: ${scenario.name}`);
-      console.log("Running scenario:", scenario);
+      navigate(`/?id=${scenario.id}`);
    };
 
    // Navigate to scenario editor with scenario ID in URL
