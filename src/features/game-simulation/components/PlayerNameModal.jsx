@@ -3,108 +3,143 @@ import { useDispatch, useSelector } from "react-redux";
 import { createUser, fetchUsers } from "../../../store/user.slice";
 import { Button, Modal } from "../../../components";
 import { Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export const PlayerNameModal = ({ isOpen, onClose, onStart }) => {
-   const [playerName, setPlayerName] = useState('');
-   const [error, setError] = useState('');
-   const dispatch = useDispatch();
+// Admins secrete key
+const ADMIN_SECRET_KEY = "Isadmin1";
 
-   const { loading } = useSelector((state) => state.users);
+export const PlayerNameModal = ({ isOpen, onClose }) => {
+  const [playerName, setPlayerName] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminKey, setAdminKey] = useState("");
+  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-   useEffect(() => {
-      if (isOpen) {
-         dispatch(fetchUsers());
+  const { loading } = useSelector((state) => state.users);
+
+  useEffect(() => {
+    if (isOpen) dispatch(fetchUsers());
+  }, [isOpen, dispatch]);
+
+  // Validate inputs
+  const validateName = (name, key) => {
+    if (!name || name.trim() === "") return "Player name cannot be empty";
+    if (isAdmin && key.trim() === "") return "Admin key is required";
+    if (isAdmin && key !== ADMIN_SECRET_KEY) return "Invalid admin key";
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    const validationError = validateName(playerName, adminKey);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      const newUser = {
+        name: playerName.trim(),
+        role: isAdmin ? "admin" : "player",
+      };
+
+      const result = await dispatch(createUser(newUser)).unwrap();
+
+      // Redirect based on role
+      if (result.role === "admin") {
+        navigate("/scenario-editor");
+      } else {
+        navigate("/scenario-library");
       }
-   }, [isOpen, dispatch]);
 
-   const validateName = (name) => {
-      if (!name || name.trim() === '') {
-         return 'Player name cannot be empty';
-      }
+      // Reset modal state
+      setPlayerName("");
+      setAdminKey("");
+      setIsAdmin(false);
+      setError("");
+      onClose();
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      setError("Failed to create user. Please try again.");
+    }
+  };
 
-      return null;
-   };
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Enter Your Name"
+      size="small"
+      showCloseButton={false}
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">Your Name or Nickname</label>
+          <input
+            type="text"
+            value={playerName}
+            onChange={(e) => {
+              setPlayerName(e.target.value);
+              setError("");
+            }}
+            placeholder="Enter your name..."
+            className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
+            autoFocus
+            disabled={loading}
+          />
+        </div>
 
-   // Submit player name and start the game
-   const handleSubmit = async () => {
-      const validationError = validateName(playerName);
-      if (validationError) {
-         setError(validationError);
-         return;
-      }
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="adminCheck"
+            checked={isAdmin}
+            onChange={(e) => setIsAdmin(e.target.checked)}
+          />
+          <label htmlFor="adminCheck" className="text-network-text-dark dark:text-network-text-light">
+            Log in as Admin
+          </label>
+        </div>
 
-      try {
-         const result = await dispatch(createUser({ name: playerName.trim() })).unwrap();
-         
-         // Pass the created user to onStart
-         onStart(result);
-         setPlayerName('');
-         setError('');
-         onClose();
-         // eslint-disable-next-line no-unused-vars
-      } catch (err) {
-         setError('Failed to create player. Please try again.');
-      }
-   };
+        {isAdmin && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Admin Key</label>
+            <input
+              type="password"
+              value={adminKey}
+              onChange={(e) => {
+                setAdminKey(e.target.value);
+                setError("");
+              }}
+              placeholder="Enter secret key..."
+              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
+              disabled={loading}
+            />
+          </div>
+        )}
 
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
 
-   const handleNameChange = (e) => {
-      setPlayerName(e.target.value);
-      setError('');
-   };
-
-   return (
-      <Modal
-         isOpen={isOpen}
-         onClose={onClose}
-         title="Enter Player Name"
-         size="small"
-         showCloseButton={false}
-      >
-         <div className="space-y-4">
-            <div>
-               <label htmlFor="playerName" className="block text-sm font-medium mb-2">
-                  Your Name or Nickname
-               </label>
-               <input
-                  id="playerName"
-                  type="text"
-                  value={playerName}
-                  onChange={handleNameChange}
-                  placeholder="Enter your name..."
-                  className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  autoFocus={true}
-                  disabled={loading}
-               />
-               {error && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                     {error}
-                  </p>
-               )}
-            </div>
-
-            <div className="flex justify-end gap-3">
-               <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={onClose}
-                  disabled={loading}
-                  title="Cancel Game"
-               >
-                  Cancel
-               </Button>
-               <Button
-                  type="button"
-                  variant="primary"
-                  onClick={handleSubmit}
-                  title="Start New Game"
-                  className="gap-2"
-                  disabled={loading || !playerName.trim()}
-               >
-                  <Play size={20} /> <span>Start Game</span>
-               </Button>
-            </div>
-         </div>
-      </Modal>
-   );
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
+            className="gap-2"
+            disabled={loading || !playerName.trim() || (isAdmin && !adminKey.trim())}
+          >
+            <Play size={20} /> <span>Start Game</span>
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
 };

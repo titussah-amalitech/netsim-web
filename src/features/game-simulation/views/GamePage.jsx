@@ -1,21 +1,12 @@
 import { useState } from "react";
-
 import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
 import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
-import { StatCard } from "../../../components/common/StatCard";
-import { useTheme } from "../../../hooks/useTheme";
-import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 
 export const GamePage = () => {
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [currentPlayer, setCurrentPlayer] = useState(null);
-   const { theme } = useTheme()
-   const isDarkMode = theme === 'dark'
-
-   
-   console.log(currentPlayer)
 
    const handleNewGame = () => {
       setIsModalOpen(true);
