@@ -16,12 +16,16 @@ import { TEST_SCENARIO, officeNetworkScenario} from '../constants';
 import { Device, Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import { DeviceProperties } from '../../scenario-management/components';
+import { useScenario } from '../../scenario-management/hooks/useScenario';
+
 const nodeTypes = { deviceNode: DeviceNode };
+
 
 const GameSimulationEnvironment = ({ scenario }) => {
 const [deviceToEdit, setDeviceToEdit] = useState(null);
   // Nodes 
-  const currentScenario = scenario || officeNetworkScenario;
+const currentScenario = scenario || officeNetworkScenario;
+const { updateDevice, } = useScenario()
 const [nodes, setNodes] = useState(
   currentScenario.devices.map((device) => ({
       id: device._id, // use "id" instead of "_id"
@@ -66,7 +70,7 @@ const [nodes, setNodes] = useState(
   // Edges 
   const [edges, setEdges] = useState(
     currentScenario.devices.flatMap((device) =>
-      device?.connections.map((targetId) => ({
+      device?.connections?.map((targetId) => ({
         id: `e${device._id}-${targetId}`,
         source: device._id,
         target: targetId,
@@ -100,7 +104,12 @@ const [nodes, setNodes] = useState(
     []
   );
 
-  
+  const handleApplyDeviceChanges = () => {
+    if (deviceToEdit) {
+      updateDevice(deviceToEdit._id, deviceToEdit);
+      setDeviceToEdit(null);
+    }
+  }
 
   return (
     <div className="flex flex-col w-full">
@@ -133,7 +142,7 @@ const [nodes, setNodes] = useState(
              title={"Adjust Device Parameters"}
              onClose={() => setDeviceToEdit(null)}
       >
-        <DeviceProperties device={deviceToEdit} isEditingMode={true} isSimulation={true}/>
+        <DeviceProperties device={deviceToEdit} isEditingMode={true} isSimulation={true} onUpdateDevice={handleApplyDeviceChanges}/>
       </Modal>
       <div className="h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-surface">
         <ReactFlow

@@ -12,19 +12,20 @@ export const DeviceProperties = ({
    isSimulation = false,
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
-   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 30)
+   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 20)
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
       return {
          name: device.device?.name || device.name || currentDeviceConfig?.name || '',
          type: device.device?.type || device.type || 'router',
-         pingInterval: device.parameters?.pingInterval || 30,
+         pingInterval: pingInterval,
          latencyThreshold: device.parameters?.latencyThreshold || 100,
          failureProbability: device.parameters?.failureProbability || 0,
          problemType: device.parameters?.problemType || 'high_latency'
       };
    });
+   console.log("formData before edit: ", formData)
 
    // Helper function to save changes and exit editing mode
    const handleSaveChanges = () => {
@@ -47,6 +48,7 @@ export const DeviceProperties = ({
          }
       });
       setIsEditing(false);
+      console.log('formData after edit: ', formData)
    };
 
    // Helper function to start editing mode
