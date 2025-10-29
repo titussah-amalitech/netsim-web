@@ -17,6 +17,9 @@ export const GameHub = () => {
 
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [showAlerts, setShowAlerts] = useState(false);
+   const [approvalRequired, setApprovalRequired] = useState(currentUser?.role === "admin");
+
+   ;
 
    const devices = [
       { name: "Router-01", status: "yellow" },
@@ -38,7 +41,7 @@ export const GameHub = () => {
 
    return (
       <div>
-         {!currentUser ? (
+         {!approvalRequired? (
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
                <div className="max-w-4xl mx-auto">
                   <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
@@ -47,8 +50,8 @@ export const GameHub = () => {
                      </h1>
 
                      <div className="text-center py-8">
-                        <Button onClick={handleNewGame} variant="primary" size="large">
-                           New Game
+                        <Button onClick={() => setApprovalRequired(prev => !prev)} variant="primary" size="large">
+                           Start Game
                         </Button>
                      </div>
                   </div>
