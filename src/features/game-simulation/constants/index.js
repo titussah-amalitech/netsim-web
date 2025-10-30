@@ -168,7 +168,7 @@ export const officeNetworkScenario = {
       },
       status: {
         online: true,
-        latency: 0,
+        latency: 100,
         lastChecked: "2025-10-06T14:46:50.208Z",
       },
       connections: ["temp_1759761987795"], // Connected to Router_1
@@ -186,7 +186,7 @@ export const officeNetworkScenario = {
       },
       status: {
         online: false,
-        latency: 100,
+        latency: 0,
         lastChecked: "2025-10-06T14:46:52.281Z",
       },
       connections: ["temp_1759761987795"], // Connected to Router_1
@@ -198,3 +198,4 @@ export const officeNetworkScenario = {
     createdAt: "2025-10-06T14:08:34.050Z",
   },
 };
+

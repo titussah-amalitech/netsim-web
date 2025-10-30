@@ -12,22 +12,23 @@ export const DeviceProperties = ({
    isSimulation = false,
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
-   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 30)
+   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 20)
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
       return {
          name: device.device?.name || device.name || currentDeviceConfig?.name || '',
          type: device.device?.type || device.type || 'router',
-         pingInterval: device.parameters?.pingInterval || 30,
+         pingInterval: pingInterval,
          latencyThreshold: device.parameters?.latencyThreshold || 100,
          failureProbability: device.parameters?.failureProbability || 0,
          problemType: device.parameters?.problemType || 'high_latency'
       };
    });
+   // console.log("formData before edit: ", formData)
 
    // Helper function to save changes and exit editing mode
-   const handleSaveChanges = () => {
+   const handleSaveChanges = !isSimulation ? () =>  {
       // Get the new device type config to update the name
       const newDeviceConfig = DEVICE_TYPES[formData.type];
       const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
@@ -47,7 +48,29 @@ export const DeviceProperties = ({
          }
       });
       setIsEditing(false);
-   };
+      // console.log('formData after edit: ', formData)
+   } : () => {
+      const newDeviceConfig = DEVICE_TYPES[formData.type];
+      const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
+
+      onUpdateDevice(device._id, {
+         device: {
+            ...device.device,
+            name: updatedName,
+            type: formData.type
+         },
+         parameters: {
+            ...device.parameters,
+         }, 
+         status: {
+            ...device.status,
+            online: formData.failureProbability > 0.5 ? false : true,
+            latency: formData.latencyThreshold
+         }
+      });
+      setIsEditing(false);
+   }
+      
 
    // Helper function to start editing mode
    const handleStartEdit = () => {
@@ -214,7 +237,7 @@ export const DeviceProperties = ({
                   {isEditing ? (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
-                           <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Threshold:</span>
+                           <span className="text-sm text-network-text-darker dark:text-network-text-light">{isSimulation ? "Latency" : "Latency Threshold"}:</span>
                         </div>
                         <input
                            type="number"

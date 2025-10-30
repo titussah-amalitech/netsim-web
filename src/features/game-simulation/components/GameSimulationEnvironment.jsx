@@ -16,13 +16,21 @@ import { TEST_SCENARIO, officeNetworkScenario} from '../constants';
 import { Device, Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import { DeviceProperties } from '../../scenario-management/components';
+import { useScenario } from '../../scenario-management/hooks/useScenario';
+import { useDispatch, useSelector } from 'react-redux';
+
 const nodeTypes = { deviceNode: DeviceNode };
 
-const GameSimulationEnvironment = () => {
+
+const GameSimulationEnvironment = ({ scenario }) => {
 const [deviceToEdit, setDeviceToEdit] = useState(null);
+const dispatch = useDispatch();
+const { scenarios } = useSelector((state) => state.scenarios)
   // Nodes 
+const currentScenario = scenario || officeNetworkScenario;
+const { updateDevice, } = useScenario()
 const [nodes, setNodes] = useState(
-  officeNetworkScenario.devices.map((device) => ({
+  currentScenario.devices.map((device) => ({
       id: device._id, // use "id" instead of "_id"
       type: "deviceNode", // custom ReactFlow node type
       position: { x: device.position.x, y: device.position.y },
@@ -63,25 +71,26 @@ const [nodes, setNodes] = useState(
   );
 
   // Edges 
-  const [edges, setEdges] = useState(
-    officeNetworkScenario.devices.flatMap((device) =>
-      device.connections.map((targetId) => ({
+  const edges = 
+    currentScenario.devices.flatMap((device) =>
+      device?.connections?.map((targetId) => ({
         id: `e${device._id}-${targetId}`,
         source: device._id,
         target: targetId,
         animated: true,
         style: {
-          stroke:
-            !device.status.online
-              ? "#ef4444" // red
-              : device.status.latency > 50
-              ? "#eab308" // yellow
-              : "#16a34a", // green (default)
+          stroke: nodes.find(n => n.id === device._id)?.data.device.status.online === false ? "#ef4444" :
+                 nodes.find(n => n.id === device._id)?.data.device.status.latency > 50 ? "#eab308" : "#16a34a", 
+            // !device.status.online
+            //   ? "#ef4444" // red
+            //   : device.status.latency > 50
+            //   ? "#eab308" // yellow
+            //   : "#16a34a", // green (default)
           strokeWidth: 2,
         },
       }))
     )
-  );
+
 
   // Handlers 
   const onNodesChange = useCallback(
@@ -99,22 +108,122 @@ const [nodes, setNodes] = useState(
     []
   );
 
-  
+  console.log("Scenario before edit: ", currentScenario)
+  // Helper to build the label JSX for a device (keeps logic consistent with
+  // initial node creation)
+  const buildLabel = (device) => (
+    <div
+      className={`
+        p-2 rounded font-medium text-sm text-white text-center rounded-full
+        ${
+          !device.status.online
+            ? "bg-red-500"
+            : device.status.latency > 50
+            ? "bg-yellow-400 text-black"
+            : "bg-green-500"
+        }
+      `}
+      onClick={() => setDeviceToEdit(device)}
+    >
+      {device.device.type === "router" && <DEVICE_TYPES.router.icon size={24} />}
+      {device.device.type === "switch" && <DEVICE_TYPES.switch.icon size={24} />}
+      {device.device.type === "server" && <DEVICE_TYPES.server.icon size={24} />}
+      {device.device.type === "pc" && <DEVICE_TYPES.pc.icon size={24} />}
+      {device.device.type === "firewall" && <DEVICE_TYPES.firewall.icon size={24} />}
+      {device.device.type === "internet" && <DEVICE_TYPES.internet.icon size={24} />}
+      {device.device.type === "cloud Service" && <DEVICE_TYPES.cloud.icon size={24} />}
+      {device.device.type === "database" && <DEVICE_TYPES.database.icon size={24} />}
+      {device.device.type === "accessPoint" && <DEVICE_TYPES.accessPoint.icon size={24} />}
+    </div>
+  );
+
+  // Apply updates coming from DeviceProperties. DeviceProperties will call
+  // onUpdateDevice(deviceId, updates). We must accept these args so updates
+  // are applied correctly and our local `nodes` state is kept in sync.
+  const handleApplyDeviceChanges = (deviceId, updates) => {
+    if (!deviceId) return;
+
+    // Delegate to scenario hook to update the canonical scenario state
+    updateDevice(deviceId, updates);
+
+    // Also update the local nodes so the ReactFlow view reflects changes
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== deviceId) return n;
+
+        const oldDevice = n.data.device || {};
+
+        const newDevice = {
+          ...oldDevice,
+          // top-level fields in updates (like position) should be merged
+          ...updates,
+          // merge nested `device` and `parameters` objects specifically
+          device: {
+            ...(oldDevice.device || {}),
+            ...(updates.device || {}),
+          },
+          parameters: {
+            ...(oldDevice.parameters || {}),
+            ...(updates.parameters || {}),
+          },
+        };
+
+        const newLabel = buildLabel(newDevice);
+        const newColor = !newDevice.status.online
+          ? "border-red-500"
+          : newDevice.status.latency > 50
+          ? "border-yellow-400 text-black"
+          : "border-green-500";
+
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            device: newDevice,
+            label: newLabel,
+            color: newColor,
+          },
+        };
+      })
+    );
+
+    setDeviceToEdit(null);
+    setEdges(
+      currentScenario.devices.flatMap((device) =>
+      device?.connections?.map((targetId) => ({
+        id: `e${device._id}-${targetId}`,
+        source: device._id,
+        target: targetId,
+        animated: true,
+        style: {
+          stroke:
+            !device.status.online
+              ? "#ef4444" // red
+              : device.status.latency > 50
+              ? "#eab308" // yellow
+              : "#16a34a", // green (default)
+          strokeWidth: 2,
+        },
+      }))
+    )
+    )
+    console.log("Scenario after edit: ", currentScenario);
+  };
 
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-wrap gap-2 ms-auto">
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(dev => dev.data.device.status === "red").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(dev => !dev.data.device.status.online).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(dev => dev.data.device.status === "yellow").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(dev => dev.data.device.status.latency > 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(dev => dev.data.device.status === "green").length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(dev => dev.data.device.status.online && dev.data.device.status.latency <= 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <GoStack size={24} className="text-network-primary mr-2" />
@@ -132,7 +241,7 @@ const [nodes, setNodes] = useState(
              title={"Adjust Device Parameters"}
              onClose={() => setDeviceToEdit(null)}
       >
-        <DeviceProperties device={deviceToEdit} isEditingMode={true} isSimulation={true}/>
+        <DeviceProperties device={deviceToEdit} isEditingMode={true} isSimulation={true} onUpdateDevice={handleApplyDeviceChanges}/>
       </Modal>
       <div className="h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-surface">
         <ReactFlow

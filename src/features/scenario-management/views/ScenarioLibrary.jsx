@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Library, Play, Edit, Trash2, Plus, Clock, Target, BookOpen } from "lucide-react";
-import { fetchScenarios } from "../store/scenario.slice";
+import { fetchScenarios, setSelectedScenario } from "../store/scenario.slice";
 import { scenarioService } from "../../../services";
 import { Alert, Button, Modal } from "../../../components";
 import { StatCard } from "../../../components/common/StatCard";
@@ -42,6 +42,7 @@ export const ScenarioLibrary = () => {
 
    const handleRunScenario = (scenario) => {
       navigate(`/?id=${scenario.id}`);
+      dispatch(setSelectedScenario(scenario));
    };
 
    // Navigate to scenario editor with scenario ID in URL
