@@ -12,15 +12,17 @@ export const DeviceProperties = ({
    isSimulation = false,
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
-   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 20)
+   
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
       return {
          name: device.device?.name || device.name || currentDeviceConfig?.name || '',
          type: device.device?.type || device.type || 'router',
-         pingInterval: pingInterval,
+         pingInterval: device.parameters?.pingInterval || 20,
          latencyThreshold: device.parameters?.latencyThreshold || 100,
+         latencyThresholdMin: device.parameters?.latencyThresholdMin || 80,
+         latencyThresholdMax: device.parameters?.latencyThresholdMax || 120,
          failureProbability: device.parameters?.failureProbability || 0,
          problemType: device.parameters?.problemType || 'high_latency'
       };
@@ -42,7 +44,8 @@ export const DeviceProperties = ({
          parameters: {
             ...device.parameters,
             pingInterval: formData.pingInterval,
-            latencyThreshold: formData.latencyThreshold,
+            latencyThresholdMin: formData.latencyThresholdMin,
+            latencyThresholdMax: formData.latencyThresholdMax,
             failureProbability: formData.failureProbability,
             problemType: formData.problemType
          }
@@ -82,6 +85,8 @@ export const DeviceProperties = ({
          type: device.device?.type || device.type || 'router',
          pingInterval: device.parameters?.pingInterval || 30,
          latencyThreshold: device.parameters?.latencyThreshold || 100,
+         latencyThresholdMin: device.parameters?.latencyThresholdMin || 80,
+         latencyThresholdMax: device.parameters?.latencyThresholdMax || 120,
          failureProbability: device.parameters?.failureProbability || 0,
          problemType: device.parameters?.problemType || 'high_latency'
       });
@@ -93,7 +98,10 @@ export const DeviceProperties = ({
       setFormData({
          name: device.device?.name || device.name || '',
          type: device.device?.type || device.type || 'router',
+         pingInterval: device.parameters?.pingInterval || 30,
          latencyThreshold: device.parameters?.latencyThreshold || 100,
+         latencyThresholdMin: device.parameters?.latencyThresholdMin || 80,
+         latencyThresholdMax: device.parameters?.latencyThresholdMax || 120,
          failureProbability: device.parameters?.failureProbability || 0,
          problemType: device.parameters?.problemType || 'high_latency'
       });
@@ -217,47 +225,100 @@ export const DeviceProperties = ({
                   Parameters
                </label>
                <div className="space-y-2">
-                  {/* Ping Interval - Read Only */}
-                  <div className="ps-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
-                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-nowrap my-1">Ping Interval:</span>
-                        {!isSimulation ? (<span className="text-blue-400 font-mono">
-                           {device.parameters?.pingInterval || 30}s
-                        </span>) : (
-                           <input type="text" 
-                           value={pingInterval}
-                           onChange={(e) => setPingInterval(e.target.value)}
-                           className='w-full h-full px-4 py-2 text-right border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400'
-                           />
-                        )}
-                     </div>
-                  </div>
-
-                  {/* Latency Threshold */}
-                  {isEditing ? (
+                  {/* Ping Interval */}
+                  {isEditing && !isSimulation ? (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
-                           <span className="text-sm text-network-text-darker dark:text-network-text-light">{isSimulation ? "Latency" : "Latency Threshold"}:</span>
+                           <span className="text-sm text-network-text-darker dark:text-network-text-light">Ping Interval:</span>
                         </div>
                         <input
                            type="number"
-                           value={formData.latencyThreshold}
-                           onChange={(e) => setFormData({ ...formData, latencyThreshold: Number(e.target.value) })}
+                           value={formData.pingInterval}
+                           onChange={(e) => setFormData({ ...formData, pingInterval: Number(e.target.value) })}
                            className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
                            min="0"
                         />
                      </div>
                   ) : (
                      <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
-                        <span className="text-sm">Latency Threshold:</span>
-                        <span className="text-yellow-400 font-mono">
-                           {device.parameters?.latencyThreshold || 100}ms
+                        <span className="text-sm">Ping Interval:</span>
+                        <span className="text-blue-400 font-mono">
+                           {device.parameters?.pingInterval || 30}s
                         </span>
                      </div>
                   )}
 
+                  {/* Latency Threshold */}
+                  {isSimulation ? (
+                     // Single input for simulation mode
+                     isEditing ? (
+                        <div>
+                           <div className="flex justify-between items-center mb-1 px-1">
+                              <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency:</span>
+                           </div>
+                           <input
+                              type="number"
+                              value={formData.latencyThreshold}
+                              onChange={(e) => setFormData({ ...formData, latencyThreshold: Number(e.target.value) })}
+                              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              min="0"
+                           />
+                        </div>
+                     ) : (
+                        <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
+                           <span className="text-sm">Latency:</span>
+                           <span className="text-yellow-400 font-mono">
+                              {device.parameters?.latencyThreshold || 100}ms
+                           </span>
+                        </div>
+                     )
+                  ) : (
+                     // Range inputs for scenario editor mode
+                     isEditing ? (
+                        <div className="space-y-2">
+                           <div className="flex justify-between items-center mb-1 px-1">
+                              <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Recovery Range:</span>
+                           </div>
+                           <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                 <label className="block text-xs text-gray-400 mb-1 px-1">Min (ms)</label>
+                                 <input
+                                    type="number"
+                                    value={formData.latencyThresholdMin}
+                                    onChange={(e) => setFormData({ ...formData, latencyThresholdMin: Number(e.target.value) })}
+                                    className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    min="0"
+                                 />
+                              </div>
+                              <div>
+                                 <label className="block text-xs text-gray-400 mb-1 px-1">Max (ms)</label>
+                                 <input
+                                    type="number"
+                                    value={formData.latencyThresholdMax}
+                                    onChange={(e) => setFormData({ ...formData, latencyThresholdMax: Number(e.target.value) })}
+                                    className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    min="0"
+                                 />
+                              </div>
+                           </div>
+                        </div>
+                     ) : (
+                        <div className="px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
+                           <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm">Latency Recovery Target:</span>
+                           </div>
+                           <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-400">Range:</span>
+                              <span className="text-yellow-400 font-mono">
+                                 {device.parameters?.latencyThresholdMin || 80}ms - {device.parameters?.latencyThresholdMax || 120}ms
+                              </span>
+                           </div>
+                        </div>
+                     )
+                  )}
+
                   {/* Failure Probability */}
-                  {isEditing ? (
+                  {isEditing && !isSimulation ? (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
                            <span className="text-sm text-network-text-darker dark:text-network-text-light">Failure Probability:</span>

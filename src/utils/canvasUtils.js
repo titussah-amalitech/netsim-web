@@ -1,4 +1,3 @@
-// src/features/scenario-management/utils/canvasUtils.js
 import { CANVAS_CONFIG } from '../constants';
 
 const { GRID_SIZE, DEVICE_SIZE } = CANVAS_CONFIG;

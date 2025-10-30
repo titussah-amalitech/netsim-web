@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { getCanvasCoords, getDeviceAtPosition } from '../utils/canvasUtils';
 import { TOOLS } from '../features/scenario-management/constants';
