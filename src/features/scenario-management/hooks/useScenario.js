@@ -35,13 +35,15 @@ export const useScenario = () => {
       const newDevice = {
          _id: `temp_${Date.now()}`,
          device: {
-            name: `${config.name}_${existingDevicesOfType.length + 1}`, // ✅ safe now
+            name: `${config.name}_${existingDevicesOfType.length + 1}`,
             type: deviceType.type
          },
          position: { x: snappedX, y: snappedY },
+         connections: [], // Array of connected device IDs
          parameters: {
             pingInterval: 30,
-            latencyThreshold: 100,
+            latencyThresholdMin: 80,
+            latencyThresholdMax: 120,
             failureProbability: 0.1,
             trafficLoad: 0
          },
@@ -79,7 +81,12 @@ export const useScenario = () => {
    const deleteDevice = useCallback((deviceId) => {
       setScenario(prev => ({
          ...prev,
-         devices: prev.devices.filter(device => device._id !== deviceId)
+         devices: prev.devices
+            .filter(device => device._id !== deviceId)
+            .map(device => ({
+               ...device,
+               connections: device.connections?.filter(id => id !== deviceId) || []
+            }))
       }));
 
       if (selectedDevice?._id === deviceId) {
@@ -95,6 +102,39 @@ export const useScenario = () => {
 
       updateDevice(deviceId, { position: snappedPosition });
    }, [updateDevice]);
+
+   const addConnection = useCallback((sourceDeviceId, targetDeviceId) => {
+      if (sourceDeviceId === targetDeviceId) return;
+
+      setScenario(prev => ({
+         ...prev,
+         devices: prev.devices.map(device => {
+            if (device._id === sourceDeviceId) {
+               const connections = device.connections || [];
+               if (!connections.includes(targetDeviceId)) {
+                  return { ...device, connections: [...connections, targetDeviceId] };
+               }
+            }
+            return device;
+         })
+      }));
+   }, []);
+
+   const removeConnection = useCallback((sourceDeviceId, targetDeviceId) => {
+      setScenario(prev => ({
+         ...prev,
+         devices: prev.devices.map(device => {
+            if (device._id === sourceDeviceId) {
+               const connections = device.connections || [];
+               return { 
+                  ...device, 
+                  connections: connections.filter(id => id !== targetDeviceId) 
+               };
+            }
+            return device;
+         })
+      }));
+   }, []);
 
    const clearScenario = useCallback(() => {
       setScenario({
@@ -117,7 +157,9 @@ export const useScenario = () => {
       updateDevice,
       deleteDevice,
       moveDevice,
+      addConnection,
+      removeConnection,
       clearScenario,
-      setScenario, // For import functionality
+      setScenario,
    };
 };

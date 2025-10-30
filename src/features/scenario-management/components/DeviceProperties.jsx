@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../../../components';
-import { Edit3, Trash2 } from 'lucide-react';
+import { Edit3, Trash2, Link2 } from 'lucide-react';
 import { DEVICE_TYPES } from '../../../constants';
 import { Dropdown } from '../../../components/common/Dropdown';
 
@@ -10,9 +10,10 @@ export const DeviceProperties = ({
    onDeleteDevice,
    isEditingMode = false,
    isSimulation = false,
+   allDevices = [], // Pass all devices to show connection info
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
-   
+
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
@@ -27,11 +28,9 @@ export const DeviceProperties = ({
          problemType: device.parameters?.problemType || 'high_latency'
       };
    });
-   // console.log("formData before edit: ", formData)
 
    // Helper function to save changes and exit editing mode
-   const handleSaveChanges = !isSimulation ? () =>  {
-      // Get the new device type config to update the name
+   const handleSaveChanges = !isSimulation ? () => {
       const newDeviceConfig = DEVICE_TYPES[formData.type];
       const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
 
@@ -51,7 +50,6 @@ export const DeviceProperties = ({
          }
       });
       setIsEditing(false);
-      // console.log('formData after edit: ', formData)
    } : () => {
       const newDeviceConfig = DEVICE_TYPES[formData.type];
       const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
@@ -64,7 +62,7 @@ export const DeviceProperties = ({
          },
          parameters: {
             ...device.parameters,
-         }, 
+         },
          status: {
             ...device.status,
             online: formData.failureProbability > 0.5 ? false : true,
@@ -73,7 +71,6 @@ export const DeviceProperties = ({
       });
       setIsEditing(false);
    }
-      
 
    // Helper function to start editing mode
    const handleStartEdit = () => {
@@ -133,6 +130,11 @@ export const DeviceProperties = ({
    // Find selected options for dropdowns
    const selectedDeviceType = deviceTypeOptions.find(opt => opt.value === formData.type);
    const selectedProblemType = problemTypeOptions.find(opt => opt.value === formData.problemType);
+
+   // Get connected devices
+   const connectedDevices = (device.connections || [])
+      .map(connId => allDevices.find(d => d._id === connId))
+      .filter(Boolean);
 
    return (
       <div className="bg-network-lighter border border-network-border-light dark:border dark:border-network-border dark:bg-network-surface rounded-lg p-4 h-fit">
@@ -202,6 +204,30 @@ export const DeviceProperties = ({
                )}
             </div>
 
+            {/* Connections */}
+            {!isSimulation && (
+               <div>
+                  <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2 flex items-center gap-2">
+                     <Link2 size={16} />
+                     Connections
+                  </label>
+                  <div className="px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
+                     {connectedDevices.length > 0 ? (
+                        <div className="space-y-1">
+                           {connectedDevices.map((connDevice) => (
+                              <div key={connDevice._id} className="text-sm flex items-center gap-2">
+                                 <span className="text-blue-400">→</span>
+                                 <span>{connDevice.device?.name || connDevice.name}</span>
+                              </div>
+                           ))}
+                        </div>
+                     ) : (
+                        <span className="text-sm text-gray-400">No connections</span>
+                     )}
+                  </div>
+               </div>
+            )}
+
             {/* Position */}
             <div>
                <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
@@ -250,7 +276,6 @@ export const DeviceProperties = ({
 
                   {/* Latency Threshold */}
                   {isSimulation ? (
-                     // Single input for simulation mode
                      isEditing ? (
                         <div>
                            <div className="flex justify-between items-center mb-1 px-1">
@@ -273,11 +298,10 @@ export const DeviceProperties = ({
                         </div>
                      )
                   ) : (
-                     // Range inputs for scenario editor mode
                      isEditing ? (
                         <div className="space-y-2">
                            <div className="flex justify-between items-center mb-1 px-1">
-                              <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Recovery Range:</span>
+                              <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Recovery Target (Range):</span>
                            </div>
                            <div className="grid grid-cols-2 gap-2">
                               <div>

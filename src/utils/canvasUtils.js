@@ -1,3 +1,4 @@
+// src/features/scenario-management/utils/canvasUtils.js
 import { CANVAS_CONFIG } from '../constants';
 
 const { GRID_SIZE, DEVICE_SIZE } = CANVAS_CONFIG;
@@ -72,42 +73,73 @@ export const drawGrid = (ctx, width, height, isDarkMode) => {
 };
 
 /**
- * Determine if two devices should be connected
+ * Draw animated connections between devices
  */
-export const shouldConnect = (device1, device2) => {
-  const type1 = device1.device?.type || device1.type;
-  const type2 = device2.device?.type || device2.type;
+export const drawConnections = (ctx, devices, isDarkMode, animationOffset = 0) => {
+  devices.forEach(device => {
+    const connections = device.connections || [];
+    
+    connections.forEach(targetId => {
+      const targetDevice = devices.find(d => d._id === targetId);
+      if (!targetDevice) return;
 
-  // Router-Switch connections
-  if ((type1 === 'router' && type2 === 'switch') ||
-    (type1 === 'switch' && type2 === 'router')) {
-    return true;
-  }
+      const sourcePos = device.position;
+      const targetPos = targetDevice.position;
 
-  // Switch-PC/Server connections
-  if ((type1 === 'switch' && (type2 === 'pc' || type2 === 'server')) ||
-    ((type1 === 'pc' || type1 === 'server') && type2 === 'switch')) {
-    return true;
-  }
+      // Draw main connection line
+      ctx.strokeStyle = isDarkMode ? '#155dfc' : '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sourcePos.x, sourcePos.y);
+      ctx.lineTo(targetPos.x, targetPos.y);
+      ctx.stroke();
 
-  return false;
+      // Draw animated dashed line overlay
+      ctx.strokeStyle = isDarkMode ? '#06b6d4' : '#155dfc';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 10]);
+      ctx.lineDashOffset = -animationOffset;
+      ctx.beginPath();
+      ctx.moveTo(sourcePos.x, sourcePos.y);
+      ctx.lineTo(targetPos.x, targetPos.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw connection endpoints (small circles)
+      const drawEndpoint = (x, y) => {
+        ctx.fillStyle = isDarkMode ? '#155dfc' : '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      };
+
+      drawEndpoint(sourcePos.x, sourcePos.y);
+      drawEndpoint(targetPos.x, targetPos.y);
+    });
+  });
 };
 
 /**
- * Draw connections between devices
+ * Draw temporary connection line during connection mode
  */
-export const drawConnections = (ctx, devices) => {
-  ctx.strokeStyle = '#6B7280';
-  ctx.lineWidth = 2;
+export const drawTemporaryConnection = (ctx, sourceDevice, mousePos, isDarkMode) => {
+  if (!sourceDevice || !mousePos) return;
 
-  devices.forEach(device1 => {
-    devices.forEach(device2 => {
-      if (device1._id !== device2._id && shouldConnect(device1, device2)) {
-        ctx.beginPath();
-        ctx.moveTo(device1.position.x, device1.position.y);
-        ctx.lineTo(device2.position.x, device2.position.y);
-        ctx.stroke();
-      }
-    });
-  });
+  const sourcePos = sourceDevice.position;
+
+  // Draw temporary dashed line
+  ctx.strokeStyle = isDarkMode ? '#f59e0b' : '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(sourcePos.x, sourcePos.y);
+  ctx.lineTo(mousePos.x, mousePos.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw source endpoint
+  ctx.fillStyle = isDarkMode ? '#f59e0b' : '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(sourcePos.x, sourcePos.y, 4, 0, Math.PI * 2);
+  ctx.fill();
 };
