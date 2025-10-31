@@ -21,7 +21,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 const nodeTypes = { deviceNode: DeviceNode };
 
-
 const GameSimulationEnvironment = ({ scenario }) => {
 const [deviceToEdit, setDeviceToEdit] = useState(null);
 const dispatch = useDispatch();
