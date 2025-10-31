@@ -2,7 +2,7 @@ import { TOOLS } from "../constants"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useSearchParams, useNavigate } from "react-router-dom"
-import { Save, Upload, Trash2, Play } from "lucide-react"
+import { Save, Upload, Trash2, Play, Link2, Unlink } from "lucide-react"
 import { CANVAS_CONFIG } from "../../../constants"
 import { useScenario } from "../hooks/useScenario"
 import { useCanvasInteraction } from "../../../hooks/useCanvasInteraction"
@@ -24,6 +24,11 @@ export const ScenarioEditor = () => {
    const [selectedTool, setSelectedTool] = useState(TOOLS.SELECT)
    const [isEditMode, setIsEditMode] = useState(false)
    const [loadingScenario, setLoadingScenario] = useState(false)
+   const [connectionMode, setConnectionMode] = useState({
+      active: false,
+      sourceDevice: null,
+      mode: 'add' // 'add' or 'remove'
+   })
    const [modalState, setModalState] = useState({
       clear: false,
       import: false,
@@ -35,7 +40,6 @@ export const ScenarioEditor = () => {
    const { currentUser } = useSelector((state) => state.users);
    const isAdmin = currentUser?.role === "admin";
 
-
    const {
       scenario,
       selectedDevice,
@@ -46,9 +50,56 @@ export const ScenarioEditor = () => {
       updateDevice,
       deleteDevice,
       moveDevice,
+      addConnection,
+      removeConnection,
       clearScenario,
       setScenario,
    } = useScenario()
+
+   /** Alerts */
+   const showAlert = useCallback((type, title, message) => {
+      const id = Date.now()
+      setAlerts((prev) => [...prev, { id, type, title, message }])
+   }, [])
+
+   const removeAlert = useCallback(
+      (id) => setAlerts((prev) => prev.filter((a) => a.id !== id)),
+      []
+   )
+
+   const handleConnectionStart = useCallback((device) => {
+      setConnectionMode(prev => ({
+         ...prev,
+         sourceDevice: device
+      }))
+   }, [])
+
+   const handleConnectionEnd = useCallback((targetDevice) => {
+      if (!connectionMode.sourceDevice || connectionMode.sourceDevice._id === targetDevice._id) {
+         setConnectionMode({ active: false, sourceDevice: null, mode: 'add' })
+         return
+      }
+
+      if (connectionMode.mode === 'add') {
+         addConnection(connectionMode.sourceDevice._id, targetDevice._id)
+         showAlert("success", "Connection Added", `Connected ${connectionMode.sourceDevice.device.name} to ${targetDevice.device.name}`)
+      } else {
+         removeConnection(connectionMode.sourceDevice._id, targetDevice._id)
+         showAlert("info", "Connection Removed", `Disconnected ${connectionMode.sourceDevice.device.name} from ${targetDevice.device.name}`)
+      }
+
+      setConnectionMode({ active: false, sourceDevice: null, mode: 'add' })
+   }, [connectionMode.sourceDevice, connectionMode.mode, addConnection, showAlert, removeConnection])
+
+   const toggleConnectionMode = useCallback((mode) => {
+      if (connectionMode.active && connectionMode.mode === mode) {
+         setConnectionMode({ active: false, sourceDevice: null, mode: 'add' })
+         setSelectedTool(TOOLS.SELECT)
+      } else {
+         setConnectionMode({ active: true, sourceDevice: null, mode })
+         setSelectedTool(TOOLS.SELECT)
+      }
+   }, [connectionMode])
 
    const {
       canvasRef,
@@ -60,6 +111,7 @@ export const ScenarioEditor = () => {
    } = useCanvasInteraction({
       scenario,
       selectedTool,
+      connectionMode,
       onDeviceAdd: (deviceType, x, y) => {
          const newDevice = addDevice(deviceType, x, y)
          setSelectedTool(TOOLS.SELECT)
@@ -67,8 +119,9 @@ export const ScenarioEditor = () => {
       },
       onDeviceMove: moveDevice,
       onDeviceSelect: setSelectedDevice,
+      onConnectionStart: handleConnectionStart,
+      onConnectionEnd: handleConnectionEnd,
    })
-
 
    /** Fetch devices on mount */
    useEffect(() => {
@@ -82,6 +135,9 @@ export const ScenarioEditor = () => {
          if (e.key === "Delete" && selectedDevice) {
             deleteDevice(selectedDevice._id)
          }
+         if (e.key === "Escape" && connectionMode.active) {
+            setConnectionMode({ active: false, sourceDevice: null, mode: 'add' })
+         }
       }
 
       window.addEventListener("mouseup", handleGlobalMouseUp)
@@ -93,24 +149,12 @@ export const ScenarioEditor = () => {
          window.removeEventListener("touchend", handleGlobalMouseUp)
          window.removeEventListener("keydown", handleKeyDown)
       }
-   }, [handlePointerUp, selectedDevice, deleteDevice])
-
-   /** Alerts */
-   const showAlert = useCallback((type, title, message) => {
-      const id = Date.now()
-      setAlerts((prev) => [...prev, { id, type, title, message }])
-   }, [])
-
-   const removeAlert = useCallback(
-      (id) => setAlerts((prev) => prev.filter((a) => a.id !== id)),
-      []
-   )
+   }, [handlePointerUp, selectedDevice, deleteDevice, connectionMode.active])
 
    useEffect(() => {
-      // Load previously selected scenario if user comes back from simulation
       if (selectedScenario) {
          setScenario(selectedScenario)
-         setIsEditMode(true) // Treat it like an editable scenario
+         setIsEditMode(true)
          showAlert("info", "Scenario Loaded", `Loaded previously selected scenario: ${selectedScenario.name}`)
       }
    }, [selectedScenario, setScenario, showAlert])
@@ -123,7 +167,6 @@ export const ScenarioEditor = () => {
          setLoadingScenario(true)
          setIsEditMode(true)
 
-         // Dispatch Redux thunk to fetch scenario by ID
          dispatch(fetchScenarioById(scenarioId))
             .unwrap()
             .then((data) => {
@@ -207,7 +250,6 @@ export const ScenarioEditor = () => {
    }, [clearScenario, showAlert, navigate])
 
    const handleSimulateScenario = useCallback(() => {
-      // Validate scenario before running
       const validation = validateScenario(scenario)
 
       if (!validation.isValid) {
@@ -261,7 +303,10 @@ export const ScenarioEditor = () => {
                      {(isEditMode && !!scenario?.id) ? 'Edit Scenario' : 'Scenario Editor'}
                   </h1>
                   <p className="text-gray-400">
-                     {(isEditMode && !!scenario?.id) ? `Editing: ${scenario.name}` : 'Design and configure network scenarios'}
+                     {connectionMode.active
+                        ? `${connectionMode.mode === 'add' ? 'Connect' : 'Disconnect'} Mode: ${connectionMode.sourceDevice ? 'Select target device' : 'Select source device'}`
+                        : (isEditMode && !!scenario?.id) ? `Editing: ${scenario.name}` : 'Design and configure network scenarios'
+                     }
                   </p>
                </div>
 
@@ -269,13 +314,37 @@ export const ScenarioEditor = () => {
                   <Button
                      variant="primary"
                      onClick={handleSimulateScenario}
-                     className=" px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                     title="Import scenario from JSON file"
+                     className="px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                     title="Simulate scenario"
                   >
                      <Play className="w-4 h-4" /> Simulate
                   </Button>
 
                   {isAdmin && <>
+                     <Button
+                        variant={connectionMode.active && connectionMode.mode === 'add' ? 'success' : 'outline'}
+                        onClick={() => toggleConnectionMode('add')}
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${connectionMode.active && connectionMode.mode === 'add'
+                           ? 'bg-network-success text-white'
+                           : 'bg-network-surface'
+                           }`}
+                        title="Connect devices"
+                     >
+                        <Link2 size={18} /> Connect
+                     </Button>
+
+                     <Button
+                        variant={connectionMode.active && connectionMode.mode === 'remove' ? 'danger' : 'outline'}
+                        onClick={() => toggleConnectionMode('remove')}
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${connectionMode.active && connectionMode.mode === 'remove'
+                           ? 'bg-network-error text-white'
+                           : 'bg-network-surface'
+                           }`}
+                        title="Disconnect devices"
+                     >
+                        <Unlink size={18} /> Disconnect
+                     </Button>
+
                      <Button
                         variant="outline"
                         onClick={() => toggleModal("export", true)}
@@ -293,6 +362,7 @@ export const ScenarioEditor = () => {
                      >
                         <Save size={18} /> {(isEditMode && !!scenario?.id) ? 'Update' : 'Save'}
                      </Button>
+
                      <Button
                         variant="outline"
                         onClick={triggerFileInput}
@@ -334,6 +404,7 @@ export const ScenarioEditor = () => {
                      devices={devices}
                      selectedTool={selectedTool}
                      onToolSelect={setSelectedTool}
+                     disabled={connectionMode.active}
                   />
                </div>
 
@@ -344,6 +415,7 @@ export const ScenarioEditor = () => {
                      scenario={scenario}
                      selectedTool={selectedTool}
                      selectedDevice={selectedDevice}
+                     connectionMode={connectionMode}
                      canvasSize={CANVAS_CONFIG.DEFAULT_CANVAS_SIZE}
                      onMouseMove={handleMouseMove}
                      onTouchMove={handleTouchMove}
@@ -351,11 +423,12 @@ export const ScenarioEditor = () => {
                      onTouchStart={handleTouchStart}
                   />
                </div>
-               {selectedDevice && (
+               {selectedDevice && !connectionMode.active && (
                   <DeviceProperties
                      device={selectedDevice}
                      onUpdateDevice={updateDevice}
                      onDeleteDevice={deleteDevice}
+                     allDevices={scenario.devices}
                   />
                )}
             </div>

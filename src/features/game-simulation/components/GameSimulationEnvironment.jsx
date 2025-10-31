@@ -22,7 +22,6 @@ import Form from '../../../components/common/Form';
 import { useMemo } from "react";
 const nodeTypes = { deviceNode: DeviceNode };
 
-
 const GameSimulationEnvironment = ({ scenario }) => {
 const [deviceToEdit, setDeviceToEdit] = useState(null);
 const dispatch = useDispatch();

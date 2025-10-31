@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { getCanvasCoords, getDeviceAtPosition } from '../utils/canvasUtils';
 import { TOOLS } from '../features/scenario-management/constants';
@@ -8,7 +7,10 @@ export const useCanvasInteraction = ({
   selectedTool,
   onDeviceAdd,
   onDeviceMove,
-  onDeviceSelect
+  onDeviceSelect,
+  onConnectionStart,
+  onConnectionEnd,
+  connectionMode
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -23,6 +25,19 @@ export const useCanvasInteraction = ({
     if (!canvas) return;
 
     const { x, y } = getCanvasCoords(canvas, clientX, clientY);
+
+    // Handle connection mode
+    if (connectionMode.active) {
+      const device = getDeviceAtPosition(scenario.devices, x, y);
+      if (device) {
+        if (!connectionMode.sourceDevice) {
+          onConnectionStart(device);
+        } else {
+          onConnectionEnd(device);
+        }
+      }
+      return;
+    }
 
     if (selectedTool === TOOLS.SELECT) {
       const device = getDeviceAtPosition(scenario.devices, x, y);
@@ -51,10 +66,10 @@ export const useCanvasInteraction = ({
         setIsDragging(false);
       }
     }
-  }, [selectedTool, scenario.devices, onDeviceAdd, onDeviceSelect]);
+  }, [selectedTool, scenario.devices, onDeviceAdd, onDeviceSelect, connectionMode, onConnectionStart, onConnectionEnd]);
 
   const handlePointerMove = useCallback((clientX, clientY) => {
-    if (!mouseDownDeviceId || selectedTool !== TOOLS.SELECT) return;
+    if (!mouseDownDeviceId || selectedTool !== TOOLS.SELECT || connectionMode.active) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -73,7 +88,7 @@ export const useCanvasInteraction = ({
       setIsDragging(true);
       onDeviceMove(device._id, newPosition);
     }
-  }, [mouseDownDeviceId, selectedTool, scenario.devices, dragOffset, onDeviceMove]);
+  }, [mouseDownDeviceId, selectedTool, scenario.devices, dragOffset, onDeviceMove, connectionMode.active]);
 
   const handlePointerUp = useCallback(() => {
     setIsDragging(false);
