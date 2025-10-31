@@ -70,7 +70,7 @@ export const GameHub = () => {
                </Button>
 
                {showAlerts && <RealTimeAlerts devices={devices} />}
-               {console.log('Selected Scenario in GameHub:', selectedScenario)  }
+               {/* {console.log('Selected Scenario in GameHub:', selectedScenario)  } */}
                <GameSimulationEnvironment scenario={selectedScenario}/>
                <DeviceLogger />
             </div>

@@ -9,10 +9,8 @@ export const DeviceProperties = ({
    onUpdateDevice,
    onDeleteDevice,
    isEditingMode = false,
-   isSimulation = false,
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
-   const [pingInterval, setPingInterval] = useState(device.parameters?.pingInterval || 20)
    // Form state for editing device properties
    const [formData, setFormData] = useState(() => {
       const currentDeviceConfig = DEVICE_TYPES[device.device?.type || device.type];
@@ -25,13 +23,13 @@ export const DeviceProperties = ({
          problemType: device.parameters?.problemType || 'high_latency'
       };
    });
-   // console.log("formData before edit: ", formData)
 
    // Helper function to save changes and exit editing mode
-   const handleSaveChanges = !isSimulation ? () =>  {
+   const handleSaveChanges = () =>  {
       // Get the new device type config to update the name
       const newDeviceConfig = DEVICE_TYPES[formData.type];
       const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
+       
 
       onUpdateDevice(device._id, {
          device: {
@@ -48,28 +46,7 @@ export const DeviceProperties = ({
          }
       });
       setIsEditing(false);
-      // console.log('formData after edit: ', formData)
-   } : () => {
-      const newDeviceConfig = DEVICE_TYPES[formData.type];
-      const updatedName = formData.name.trim() || newDeviceConfig?.name || formData.type;
-
-      onUpdateDevice(device._id, {
-         device: {
-            ...device.device,
-            name: updatedName,
-            type: formData.type
-         },
-         parameters: {
-            ...device.parameters,
-         }, 
-         status: {
-            ...device.status,
-            online: formData.failureProbability > 0.5 ? false : true,
-            latency: formData.latencyThreshold
-         }
-      });
-      setIsEditing(false);
-   }
+   };
       
 
    // Helper function to start editing mode
@@ -157,7 +134,7 @@ export const DeviceProperties = ({
                <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2">
                   Device Type
                </label>
-               {isEditing && !isSimulation ? (
+               {isEditing ? (
                   <Dropdown
                      selected={selectedDeviceType}
                      options={deviceTypeOptions}
@@ -221,15 +198,9 @@ export const DeviceProperties = ({
                   <div className="ps-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
                      <div className="flex justify-between items-center">
                         <span className="text-sm text-nowrap my-1">Ping Interval:</span>
-                        {!isSimulation ? (<span className="text-blue-400 font-mono">
+                         <span className="text-blue-400 font-mono">
                            {device.parameters?.pingInterval || 30}s
-                        </span>) : (
-                           <input type="text" 
-                           value={pingInterval}
-                           onChange={(e) => setPingInterval(e.target.value)}
-                           className='w-full h-full px-4 py-2 text-right border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400'
-                           />
-                        )}
+                        </span>
                      </div>
                   </div>
 
@@ -237,7 +208,7 @@ export const DeviceProperties = ({
                   {isEditing ? (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
-                           <span className="text-sm text-network-text-darker dark:text-network-text-light">{isSimulation ? "Latency" : "Latency Threshold"}:</span>
+                           <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Threshold:</span>
                         </div>
                         <input
                            type="number"
@@ -281,7 +252,7 @@ export const DeviceProperties = ({
                   )}
 
                   {/* Problem Type */}
-                  {!isSimulation && (isEditing ? (
+                  {isEditing ? (
                      <Dropdown
                         label="Problem Type"
                         selected={selectedProblemType}
@@ -296,7 +267,7 @@ export const DeviceProperties = ({
                         <span className="text-sm">Problem Type:</span>
                         <span className="text-purple-400">{selectedProblemType?.label}</span>
                      </div>
-                  ))}
+                  )}
 
                   {/* Status - Read Only */}
                   <div className="px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
@@ -319,7 +290,7 @@ export const DeviceProperties = ({
                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-network-success hover:bg-network-success/80 text-white rounded-lg transition-colors cursor-pointer"
                      title="Save device properties changes"
                   >
-                     {isSimulation ? "Apply" : "Save"}
+                     Save
                   </Button>
                   {!isSimulation && <button
                      variant=""
