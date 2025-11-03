@@ -77,7 +77,7 @@ export const officeNetworkScenario = {
       position: { x: 680, y: 280 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -94,7 +94,7 @@ export const officeNetworkScenario = {
       position: { x: 240, y: 360 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -111,7 +111,7 @@ export const officeNetworkScenario = {
       position: { x: 80, y: 320 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -128,7 +128,7 @@ export const officeNetworkScenario = {
       position: { x: 560, y: 400 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -145,7 +145,7 @@ export const officeNetworkScenario = {
       position: { x: 200, y: 560 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -162,7 +162,7 @@ export const officeNetworkScenario = {
       position: { x: 720, y: 480 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 100,
+        latencyThreshold: 50,
         failureProbability: 0.1,
         trafficLoad: 0,
       },
@@ -179,8 +179,8 @@ export const officeNetworkScenario = {
       position: { x: 800, y: 80 },
       parameters: {
         pingInterval: 30,
-        latencyThreshold: 200,
-        failureProbability: 0.9,
+        latencyThreshold: 50,
+        failureProbability: 0.1,
         trafficLoad: 0,
         problemType: "packet_drops",
       },

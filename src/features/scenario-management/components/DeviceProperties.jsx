@@ -185,7 +185,7 @@ export const DeviceProperties = ({
             </div>
 
             {/* Connections */}
-            {!isSimulation && (
+            {(
                <div>
                   <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-2 flex items-center gap-2">
                      <Link2 size={16} />
@@ -232,7 +232,7 @@ export const DeviceProperties = ({
                </label>
                <div className="space-y-2">
                   {/* Ping Interval - Read Only */}
-                  <div className="ps-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
+               {!isEditing ? (<div className="ps-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
                      <div className="flex justify-between items-center">
                         <span className="text-sm text-nowrap my-1">Ping Interval:</span>
                          <span className="text-blue-400 font-mono">
@@ -241,8 +241,8 @@ export const DeviceProperties = ({
                      </div>
                   </div>
 
-                  {/* Latency Threshold */}
-                  {isEditing ? (
+                  
+                  ): (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
                            <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency Threshold:</span>
@@ -255,39 +255,9 @@ export const DeviceProperties = ({
                            min="0"
                         />
                      </div>
-                  ) : (
-                     <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
-                        <span className="text-sm">Ping Interval:</span>
-                        <span className="text-blue-400 font-mono">
-                           {device.parameters?.pingInterval || 30}s
-                        </span>
-                     </div>
-                  )}
-
+                  ) }
                   {/* Latency Threshold */}
-                  {isSimulation ? (
-                     isEditing ? (
-                        <div>
-                           <div className="flex justify-between items-center mb-1 px-1">
-                              <span className="text-sm text-network-text-darker dark:text-network-text-light">Latency:</span>
-                           </div>
-                           <input
-                              type="number"
-                              value={formData.latencyThreshold}
-                              onChange={(e) => setFormData({ ...formData, latencyThreshold: Number(e.target.value) })}
-                              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              min="0"
-                           />
-                        </div>
-                     ) : (
-                        <div className="flex justify-between items-center px-3 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light">
-                           <span className="text-sm">Latency:</span>
-                           <span className="text-yellow-400 font-mono">
-                              {device.parameters?.latencyThreshold || 100}ms
-                           </span>
-                        </div>
-                     )
-                  ) : (
+                  {
                      isEditing ? (
                         <div className="space-y-2">
                            <div className="flex justify-between items-center mb-1 px-1">
@@ -329,10 +299,10 @@ export const DeviceProperties = ({
                            </div>
                         </div>
                      )
-                  )}
+                  }
 
                   {/* Failure Probability */}
-                  {isEditing && !isSimulation ? (
+                  {isEditing ? (
                      <div>
                         <div className="flex justify-between items-center mb-1 px-1">
                            <span className="text-sm text-network-text-darker dark:text-network-text-light">Failure Probability:</span>

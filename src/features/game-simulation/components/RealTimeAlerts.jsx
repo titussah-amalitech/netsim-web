@@ -6,6 +6,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import { useAlertSound } from "../hooks/useAlertSound";
 
 const RealTimeAlerts = ({ devices }) => {
+  console.log('Devices in RealTimeAlerts:', devices);
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
   const { playSound } = useAlertSound(false)
@@ -15,7 +16,7 @@ const RealTimeAlerts = ({ devices }) => {
     playSound(device.status)
 
     const message =
-      device.status === "red"
+      device.parameters.failureProbability > 0.5
         ? `${device.name} is offline`
         : `${device.name} is experiencing high latency`;
 
@@ -36,7 +37,7 @@ const RealTimeAlerts = ({ devices }) => {
       ),
       {
         icon:
-          device.status === "red" ? (
+          device.parameters.failureProbability >  0.5 ? (
             <ImCross color="#ff0000" size={20} />
           ) : (
             <ImCross color="#facc15" size={20} />
