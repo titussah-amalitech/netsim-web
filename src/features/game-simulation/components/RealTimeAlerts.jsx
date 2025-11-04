@@ -6,7 +6,6 @@ import { useTheme } from "../../../hooks/useTheme";
 import { useAlertSound } from "../hooks/useAlertSound";
 
 const RealTimeAlerts = ({ devices }) => {
-  console.log('Devices in RealTimeAlerts:', devices);
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
   const { playSound } = useAlertSound(false)

@@ -16,6 +16,8 @@ import { DEVICE_TYPES } from '../../../constants';
 import Form from '../../../components/common/Form';
 import { useMemo } from "react";
 import RealTimeAlerts from './RealTimeAlerts';
+import { scoreService } from '../services/score.service';
+import { useSelector } from 'react-redux';
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = ({ scenario }) => {
@@ -23,10 +25,22 @@ const [deviceToEdit, setDeviceToEdit] = useState(null);
 const [activeIssue, setActiveIssue] = useState(null);
 const [issueResolved, setIssueResolved] = useState(false);
 const [alertsArray, setAlertsArray] = useState([]);
+const [score, setScore] = useState(0);
 const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
+const { currentUser } = useSelector((state) => state.users);
+useEffect(() => {
+  if (!currentUser || !currentScenario) return;
 
-
-
+  // Only initialize if no current game
+  const existingGame = scoreService.getCurrentGame();
+  if (!existingGame) {
+    scoreService.initializeGame(
+      currentScenario?.id || currentScenario?._id,
+      currentUser?._id || currentUser?.id,
+      currentScenario.name
+    );
+  }
+}, [currentUser, currentScenario]);
 
 const createNodeFromDevice = (device) => ({
   id: device._id,
@@ -38,9 +52,9 @@ const createNodeFromDevice = (device) => ({
         className={`
           p-2 rounded font-medium text-sm text-white text-center rounded-full
           ${
-            device.parameters.latencyThreshold > 100 || device.parameters.failureProbability > 0.5
+            device.parameters.latencyThreshold > 100 
             ? "bg-red-500"
-            : device.parameters.latencyThreshold > 50
+            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
             ? "bg-yellow-400 text-black"
             : "bg-green-500"
           }
@@ -58,9 +72,9 @@ const createNodeFromDevice = (device) => ({
         {device.device.type === 'accessPoint' && <DEVICE_TYPES.accessPoint.icon size={24} />}
       </div>
     ),
-    color: device.parameters.latencyThreshold > 100 || device.parameters.failureProbability > 0.5
+    color: device.parameters.latencyThreshold > 100 
             ? "border-red-500"
-            : device.parameters.latencyThreshold > 50
+            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
             ? "border-yellow-400 text-black"
             : "border-green-500",
     device,
@@ -98,16 +112,15 @@ useEffect(() => {
       className={`
         p-2 rounded font-medium text-sm text-white text-center rounded-full
         ${
-          device.parameters.pingInterval > 100 || device.parameters.failureProbability > 0.5
+          device.parameters.pingInterval > 100 
             ? "bg-red-500"
-            : device.parameters.latencyThreshold > 50
+            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
             ? "bg-yellow-400 text-black"
             : "bg-green-500"
         }
       `}
       onClick={() => setDeviceToEdit(device)}
     >
-      {console.log('Rendering label for device:', device)}
       {device.device.type === "router" && <DEVICE_TYPES.router.icon size={24} />}
       {device.device.type === "switch" && <DEVICE_TYPES.switch.icon size={24} />}
       {device.device.type === "server" && <DEVICE_TYPES.server.icon size={24} />}
@@ -119,6 +132,11 @@ useEffect(() => {
       {device.device.type === "accessPoint" && <DEVICE_TYPES.accessPoint.icon size={24} />}
     </div>
   );
+
+  const handleIssueFix = (deviceId) => {
+    const result = scoreService.recordIssueFix(deviceId);
+    if (result) setScore(result.totalScore);
+  };
 
   // Apply updates coming from DeviceProperties. DeviceProperties will call
   // onUpdateDevice(deviceId, updates). We must accept these args so updates
@@ -148,10 +166,6 @@ useEffect(() => {
         status: { ...node.data.device.status, ...(updates.status || {}) },
       };
       
-      // console.log('Updated Device:', updatedDevice);
-      // console.log('Updated Device Status:', updatedDevice.status);
-      // console.log('Updates Applied:', updates);
-      console.log('Updated Scenario:', currentScenario);
       
       return {
         ...node,
@@ -159,16 +173,16 @@ useEffect(() => {
           ...node.data,
           device: updatedDevice,
           label: buildLabel(updatedDevice),
-          color: updatedDevice.parameters.latencyThreshold > 100 || updatedDevice.parameters.failureProbability > 0.5
+          color: updatedDevice.parameters.latencyThreshold > 100 
             ? 'border-red-500'
-            : updatedDevice.parameters.latencyThreshold > 50
+            : updatedDevice.parameters.latencyThreshold > 50 || updatedDevice.parameters.latencyThreshold <= 100
             ? 'border-yellow-400 text-black'
             : 'border-green-500',
         },
       };
     })
   );
-  console.log("Edited device: ", deviceToEdit)
+  handleIssueFix(deviceId)
   setDeviceToEdit(null);
   };
 
@@ -182,9 +196,9 @@ useEffect(() => {
         animated: true,
         style: {
           stroke:
-            nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold >100 || nodes.find((n) => n.id === device._id)?.data.device.parameters.failureProbability > 0.5
+            nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold > 100 
               ? "#ef4444"
-              : nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold > 50
+              : nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold > 50 && nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold <= 100
               ? "#eab308"
               : "#16a34a",
           strokeWidth: 5,
@@ -198,11 +212,10 @@ useEffect(() => {
 
     const failingDevices = currentScenario.devices.filter(
       (device) =>
-        device.parameters.failureProbability > 0.5 ||
-        device.parameters.latencyThreshold > 100
+        device.parameters.latencyThreshold > 50
     );
 
-    // ✅ Always set a new array reference
+    // Always set a new array reference
     setAlertsArray([...failingDevices]);
   }, [currentScenario]);
 
@@ -213,18 +226,19 @@ useEffect(() => {
       // pick a random device
       const randomIndex = Math.floor(Math.random() * prevScenario.devices.length);
       const randomDevice = prevScenario.devices[randomIndex];
+      const newIssue = randomDevice.parameters.latencyThreshold + Math.floor(Math.random() * 100 + 50) // add 100–200ms latency
 
       // modify it
       const updatedDevice = {
         ...randomDevice,
         parameters: {
           ...randomDevice.parameters,
-          latencyThreshold: randomDevice.parameters.latencyThreshold + Math.floor(Math.random() * 100 + 100), // add 100–200ms latency
-          failureProbability: Math.round(Math.min(1, randomDevice.parameters.failureProbability + Math.random() * 0.4), 2), // +0–40%
+          latencyThreshold: newIssue,
         },
       };
 
       setActiveIssue(updatedDevice._id); // mark as current issue
+      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newIssue > 100 ? "red" : "yellow"), 1000)
       setIssueResolved(false); // reset state
 
       return {
@@ -240,34 +254,44 @@ useEffect(() => {
   useEffect(() => {
   // Start the first issue when the game loads
     if (!activeIssue) {
-      triggerRandomIssue();
+      setTimeout(() => triggerRandomIssue(), 10000)
     }
   }, [activeIssue, triggerRandomIssue]);
 
   //Randomly simulate device issues every few seconds
   useEffect(() => {
-  if (!activeIssue) return;
+    if (!activeIssue) return;
 
-  const affectedDevice = currentScenario.devices.find(
-    (d) => d._id === activeIssue
-  );
+    const affectedDevice = currentScenario.devices.find(
+      (d) => d._id === activeIssue
+    );
 
-  if (!affectedDevice) return;
+    if (!affectedDevice) return;
 
-  const { latencyThreshold, failureProbability } = affectedDevice.parameters;
+    const { latencyThreshold } = affectedDevice.parameters;
 
-  // consider "fixed" when it's back to normal thresholds
-  if (latencyThreshold <= 50 && failureProbability <= 0.5 && !issueResolved) {
-    console.log(`Device ${affectedDevice.device.type} issue resolved!`);
-    setIssueResolved(true);
+    // consider "fixed" when it's back to normal thresholds
+    if (latencyThreshold <= 50 &&  !issueResolved) {
+      console.log(`Device ${affectedDevice.device.type} issue resolved!`);
+      scoreService.recordIssueFix(activeIssue || affectedDevice.device?._id)
+      setIssueResolved(true);
 
-    // Wait 5 seconds before creating a new issue
-    setTimeout(() => {
-      triggerRandomIssue();
-    }, 5000);
-  }
-}, [currentScenario, activeIssue, issueResolved, triggerRandomIssue]);
+      // Wait 5 seconds before creating a new issue
+      setTimeout(() => {
+        triggerRandomIssue();
+      }, 5000);
+    }
+  }, [currentScenario, activeIssue, issueResolved, triggerRandomIssue]);
 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     const stats = scoreService.getGameStats();
+  //     if (stats) setScore(stats.score);
+  //     console.log("Gamestats: ", stats)
+  //   }, 1000); // update every 1s
+
+  //   return () => clearInterval(interval);
+  // }, []);
 
 
 
@@ -276,15 +300,15 @@ useEffect(() => {
       <div className="flex flex-wrap gap-2 ms-auto">
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(node => node.data.device.parameters.failureProbability > 0.5 || node.data.device.parameters.latencyThreshold > 100).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(node =>  node.data.device.parameters.latencyThreshold > 100).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(node => node.data.device.parameters.latencyThreshold > 50).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(node => node.data.device.parameters.latencyThreshold > 50 && node.data.device.parameters.latencyThreshold <= 100).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(node => node.data.device.parameters.failureProbability <= 0.5 && node.data.device.parameters.latencyThreshold <= 50).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(node => node.data.device.parameters.latencyThreshold <= 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <GoStack size={24} className="text-network-primary mr-2" />
@@ -293,9 +317,9 @@ useEffect(() => {
       </div>
 
       <div className="flex justify-between items-center  border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
-            <p className='text-xl dark:text-network-light font-bold'>Your Score: 500</p>
+            <p className='text-xl dark:text-network-light font-bold'>Your Score: {score}</p>
             
-            <CountdownTimer initialTime={300} isRunning={true} className="mb-2 dark:text-network-light" />
+            <CountdownTimer initialTime={300} isRunning={true} className="mb-2 dark:text-network-light" endGame={scoreService.endGame}/>
       </div>
       <Modal isOpen={deviceToEdit !== null}
              title={"Adjust Device Parameters"}
@@ -326,6 +350,7 @@ useEffect(() => {
                         rounded text-network-text-darker dark:text-network-text-light focus:outline-none
                         focus:ring-2 focus:ring-blue-400"
               min="1"
+              disabled
             />
           </div>
 
@@ -335,7 +360,7 @@ useEffect(() => {
             </label>
             <input
               type="number"
-              value={deviceToEdit.parameters.latencyThreshold}
+              value={deviceToEdit.parameters.latencyThreshold || 30}
               onChange={(e) => setDeviceToEdit(prev => ({
                 ...prev,
                 parameters: { ...(prev.parameters || {}), latencyThreshold: Number(e.target.value) }
@@ -363,6 +388,7 @@ useEffect(() => {
                         focus:ring-2 focus:ring-blue-400"
               min="0"
               max="100"
+              disabled
             />
           </div>
 
@@ -372,11 +398,11 @@ useEffect(() => {
             </label>
             <div
               className={`px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                          rounded text-network-text-darker dark:text-network-text-light ${
-                            deviceToEdit.status?.online ? 'text-network-success' : 'text-network-error'
+                          rounded  ${
+                            deviceToEdit.parameters.latencyThreshold <= 100 ? 'text-network-success' : 'text-network-error'
                           }`}
             >
-              {deviceToEdit.status?.online ? 'Online' : 'Offline'}
+              {deviceToEdit.parameters.latencyThreshold <= 100 ? 'Online' : 'Offline'}
             </div>
           </div>
 
@@ -395,8 +421,6 @@ useEffect(() => {
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
-          // onEdgesChange={onEdgesChange}
-          // onConnect={onConnect}
           nodeTypes={nodeTypes}
           nodesDraggable
           fitView

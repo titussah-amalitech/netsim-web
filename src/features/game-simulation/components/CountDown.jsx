@@ -7,6 +7,7 @@ const CountdownTimer = ({
   isRunning = true,
   onComplete = () => {},
   className = "",
+  endGame
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
@@ -45,7 +46,7 @@ const CountdownTimer = ({
   }, [active, onComplete]);
 
   const handlePauseResume = () => setActive((prev) => !prev);
-  const handleReset = () => setTimeLeft(initialTime);
+  const handleReset = () => endGame();
 
   return (
     <div
