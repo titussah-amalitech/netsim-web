@@ -15,9 +15,10 @@ import { Button, Device, Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import Form from '../../../components/common/Form';
 import { useMemo } from "react";
-import RealTimeAlerts from './RealTimeAlerts';
+import { showRealTimeAlert } from './RealTimeAlerts';
 import { scoreService } from '../services/score.service';
 import { useSelector } from 'react-redux';
+import { useAlertSound } from '../hooks/useAlertSound';
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = ({ scenario }) => {
@@ -28,6 +29,7 @@ const [alertsArray, setAlertsArray] = useState([]);
 const [score, setScore] = useState(0);
 const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
 const { currentUser } = useSelector((state) => state.users);
+const { playSound } = useAlertSound(false);
 useEffect(() => {
   if (!currentUser || !currentScenario) return;
 
@@ -136,6 +138,8 @@ useEffect(() => {
   const handleIssueFix = (deviceId) => {
     const result = scoreService.recordIssueFix(deviceId);
     if (result) setScore(result.totalScore);
+      console.log(`Device ${deviceId} manually fixed!`);
+      setIssueResolved(true);
   };
 
   // Apply updates coming from DeviceProperties. DeviceProperties will call
@@ -181,9 +185,11 @@ useEffect(() => {
         },
       };
     })
-  );
-  handleIssueFix(deviceId)
-  setDeviceToEdit(null);
+    );
+    if (deviceToEdit.parameters.latencyThreshold <= 50) {
+      handleIssueFix(deviceId);
+    }
+    setDeviceToEdit(null);
   };
 
 
@@ -205,19 +211,8 @@ useEffect(() => {
         },
       }))
     );
-  }, [currentScenario.devices]);
+  }, [currentScenario.devices, nodes]);
 
-  useEffect(() => {
-    if (!currentScenario?.devices) return;
-
-    const failingDevices = currentScenario.devices.filter(
-      (device) =>
-        device.parameters.latencyThreshold > 50
-    );
-
-    // Always set a new array reference
-    setAlertsArray([...failingDevices]);
-  }, [currentScenario]);
 
   const triggerRandomIssue = useCallback(() => {
     setCurrentScenario(prevScenario => {
@@ -236,6 +231,12 @@ useEffect(() => {
           latencyThreshold: newIssue,
         },
       };
+
+      if(newIssue > 50){
+        newIssue > 100 ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
+                            : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
+        playSound(newIssue > 100 ? "red" : "yellow");
+      }
 
       setActiveIssue(updatedDevice._id); // mark as current issue
       setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newIssue > 100 ? "red" : "yellow"), 1000)
@@ -265,34 +266,19 @@ useEffect(() => {
     const affectedDevice = currentScenario.devices.find(
       (d) => d._id === activeIssue
     );
-
     if (!affectedDevice) return;
 
     const { latencyThreshold } = affectedDevice.parameters;
+    
+   
+    // Only mark resolved if it was previously failing AND now is back to normal
+    if (issueResolved === false && latencyThreshold <= 50) {
+      
 
-    // consider "fixed" when it's back to normal thresholds
-    if (latencyThreshold <= 50 &&  !issueResolved) {
-      console.log(`Device ${affectedDevice.device.type} issue resolved!`);
-      scoreService.recordIssueFix(activeIssue || affectedDevice.device?._id)
-      setIssueResolved(true);
-
-      // Wait 5 seconds before creating a new issue
-      setTimeout(() => {
-        triggerRandomIssue();
-      }, 5000);
+      // trigger next issue after 30s
+      setTimeout(() => triggerRandomIssue(), 30000);
     }
-  }, [currentScenario, activeIssue, issueResolved, triggerRandomIssue]);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     const stats = scoreService.getGameStats();
-  //     if (stats) setScore(stats.score);
-  //     console.log("Gamestats: ", stats)
-  //   }, 1000); // update every 1s
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
+  }, [currentScenario, activeIssue, issueResolved]);
 
 
   return (
@@ -317,9 +303,9 @@ useEffect(() => {
       </div>
 
       <div className="flex justify-between items-center  border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
-            <p className='text-xl dark:text-network-light font-bold'>Your Score: {score}</p>
+            <p className='text-xl dark:text-network-light font-bold'>Score: {score}</p>
             
-            <CountdownTimer initialTime={300} isRunning={true} className="mb-2 dark:text-network-light" endGame={scoreService.endGame}/>
+            <CountdownTimer initialTime={300} isRunning={true} className="mb-2 dark:text-network-light" endGame={scoreService.endGame.bind(scoreService)}/>
       </div>
       <Modal isOpen={deviceToEdit !== null}
              title={"Adjust Device Parameters"}
@@ -429,7 +415,7 @@ useEffect(() => {
           <Background  />
         </ReactFlow>
       </div>
-      {alertsArray.length && <RealTimeAlerts devices={alertsArray} />}
+      
     </div>
   );
 };

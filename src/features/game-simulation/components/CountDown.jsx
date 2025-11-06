@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button } from "../../../components";
 import { FaPause, FaPlay, FaRedo } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const CountdownTimer = ({
   initialTime = 300, // default 5 minutes
@@ -12,6 +14,8 @@ const CountdownTimer = ({
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
   const intervalRef = useRef(null);
+  const { currentUser } = useSelector((state) => state.users);
+  const navigate = useNavigate()
 
   // Format seconds to mm:ss
   const formatTime = (seconds) => {
@@ -46,7 +50,10 @@ const CountdownTimer = ({
   }, [active, onComplete]);
 
   const handlePauseResume = () => setActive((prev) => !prev);
-  const handleReset = () => endGame();
+  const handleReset = () => {
+    endGame(currentUser?.name)
+    navigate(0)
+  };
 
   return (
     <div

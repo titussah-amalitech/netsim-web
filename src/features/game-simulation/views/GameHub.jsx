@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchLeaderboard } from "../../leaderboard/store/leaderboard.slice";
 import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
-import RealTimeAlerts from "../components/RealTimeAlerts";
 import DeviceLogger from "../components/DeviceLogger";
 import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
 // import { useStartGame } from "../hooks/useStartGame";
@@ -16,15 +15,11 @@ export const GameHub = () => {
    const { selectedScenario } = useSelector((state) => state.scenarios)
 
    const [isModalOpen, setIsModalOpen] = useState(false);
-   const [showAlerts, setShowAlerts] = useState(false);
    const [approvalRequired, setApprovalRequired] = useState(currentUser?.role === "admin");
 
    ;
 
-   const devices = [
-      { name: "Router-01", status: "yellow" },
-      // { name: "Switch-02", status: "red" },
-   ];
+
 
    // const { startGame } = useStartGame(() => (''), officeNetworkScenario);
 
@@ -65,12 +60,6 @@ export const GameHub = () => {
             </div>
          ) : (
             <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full space-y-4">
-               <Button onClick={() => setShowAlerts((prev) => !prev)}>
-                  Show Alerts
-               </Button>
-
-               {showAlerts && <RealTimeAlerts devices={devices} />}
-               {console.log('Selected Scenario in GameHub:', selectedScenario)  }
                <GameSimulationEnvironment scenario={selectedScenario}/>
                <DeviceLogger />
             </div>

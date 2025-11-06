@@ -1,65 +1,38 @@
-import { useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
-import { useTheme } from "../../../hooks/useTheme";
-import { useAlertSound } from "../hooks/useAlertSound";
 
-const RealTimeAlerts = ({ devices }) => {
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
-  const { playSound } = useAlertSound(false)
 
-  const showAlert = (device) => {
+/**
+ * Shows a real-time alert toast.
+ * 
+ * @param {object} device - The affected device object.
+ * @param {string} message - The alert message.
+ * @param {"red" | "yellow"} status - The alert severity.
+ */
+export const showRealTimeAlert = (device, message, status, isDarkMode = false) => {
 
-    playSound(device.status)
-
-    const message =
-      device.parameters.failureProbability > 0.5
-        ? `${device.name} is offline`
-        : `${device.name} is experiencing high latency`;
-
-    toast(
-      (t) => (
-        <div className="flex items-center justify-between w-full space-x-4">
-          <p>{message}</p>
-          <button onClick={() => toast.dismiss(t.id)}>
-            <FaRegTrashAlt
-              color={
-                isDarkMode
-                  ? "var(--color-network-text)"
-                  : "var(--color-network-text-dark)"
-              }
-            />
-          </button>
-        </div>
-      ),
-      {
-        icon:
-          device.parameters.failureProbability >  0.5 ? (
-            <ImCross color="#ff0000" size={20} />
-          ) : (
-            <ImCross color="#facc15" size={20} />
-          ),
-        duration: 7000,
-        position: "top-right",
-      }
-    );
-  };
-
-  useEffect(() => {
-    const problemDevices = devices.filter(
-      (d) => d.status === "yellow" || d.status === "red"
-    );
-
-    problemDevices.forEach((device, index) => {
-      setTimeout(() => {
-        showAlert(device);
-      }, index * 1500); 
-    });
-  }, [devices]);
-
-  return <Toaster position="top-right" reverseOrder={false} />;
+  toast((t) => (
+    <div className="flex items-center justify-between w-full space-x-4">
+      <p>{message}</p>
+      <button onClick={() => toast.dismiss(t.id)}>
+        <FaRegTrashAlt
+          color={
+            isDarkMode
+              ? "var(--color-network-text)"
+              : "var(--color-network-text-dark)"
+          }
+        />
+      </button>
+    </div>
+  ), {
+    icon: (
+      <ImCross
+        color={status === "red" ? "#ff0000" : "#facc15"}
+        size={20}
+      />
+    ),
+    duration: 7000,
+    position: "top-right",
+  });
 };
-
-export default RealTimeAlerts;

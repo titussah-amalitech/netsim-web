@@ -6,6 +6,7 @@ import { Leaderboard } from './features/leaderboard/views/Leaderboard'
 
 import { GameHub } from './features/game-simulation/views/GameHub'
 import { GlobalAuthWrapper } from './components/GlobalAuthWrapper'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
   // TODO: REMOVE THIS LATER
@@ -31,6 +32,7 @@ function App() {
             </Route>
           </Routes>
         </div>
+        <Toaster position="top-right" reverseOrder={false} />;
       </GlobalAuthWrapper>
     </BrowserRouter>
   )
