@@ -9,7 +9,7 @@ export const TEST_SCENARIO = {
       id: "router-01",
       type: "router",
       name: "Main Campus Router",
-      status: "red", // offline
+      deviceStatus: "red", // offline
       ip: "192.168.1.1",
       connections: ["switch-01", "server-01"],
       position: { x: 200, y: 100 },
@@ -19,7 +19,7 @@ export const TEST_SCENARIO = {
       id: "switch-01",
       type: "switch",
       name: "Core Switch",
-      status: "yellow", // high latency
+      deviceStatus: "yellow", // high latency
       ip: "192.168.1.2",
       connections: ["router-01", "workstation-01", "workstation-02"],
       position: { x: 450, y: 100 },
@@ -29,7 +29,7 @@ export const TEST_SCENARIO = {
       id: "server-01",
       type: "server",
       name: "Database Server",
-      status: "green", // online
+      deviceStatus: "green", // online
       ip: "192.168.1.3",
       connections: ["router-01"],
       position: { x: 700, y: 80 },
@@ -39,7 +39,7 @@ export const TEST_SCENARIO = {
       id: "workstation-01",
       type: "pc",
       name: "Admin Workstation",
-      status: "green",
+      deviceStatus: "green",
       ip: "192.168.1.10",
       connections: ["switch-01"],
       position: { x: 400, y: 300 },
@@ -49,7 +49,7 @@ export const TEST_SCENARIO = {
       id: "workstation-02",
       type: "pc",
       name: "Student Lab PC",
-      status: "yellow",
+      deviceStatus: "yellow",
       ip: "192.168.1.11",
       connections: ["switch-01"],
       position: { x: 600, y: 300 },
@@ -81,7 +81,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 0,
         lastChecked: "2025-10-06T14:46:27.795Z",
@@ -98,7 +98,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 0,
         lastChecked: "2025-10-06T14:46:37.997Z",
@@ -115,7 +115,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 0,
         lastChecked: "2025-10-06T14:46:39.629Z",
@@ -132,7 +132,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 0,
         lastChecked: "2025-10-06T14:46:43.616Z",
@@ -149,7 +149,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 70,
         lastChecked: "2025-10-06T14:46:47.651Z",
@@ -166,7 +166,7 @@ export const officeNetworkScenario = {
         failureProbability: 0.1,
         trafficLoad: 0,
       },
-      status: {
+      deviceStatus: {
         online: true,
         latency: 100,
         lastChecked: "2025-10-06T14:46:50.208Z",
@@ -184,7 +184,7 @@ export const officeNetworkScenario = {
         trafficLoad: 0,
         problemType: "packet_drops",
       },
-      status: {
+      deviceStatus: {
         online: false,
         latency: 0,
         lastChecked: "2025-10-06T14:46:52.281Z",

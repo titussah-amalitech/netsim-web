@@ -2,22 +2,22 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Trophy, Medal, Award } from "lucide-react";
 import { FaCrown, FaMedal } from "react-icons/fa"
-import { fetchLeaderboard } from "../store/leaderboard.slice";
 import { Loader } from "../../../components/common/Loader";
 import { Alert } from "../../../components/common/Alert";
 import { DataTable } from "../../../components/Table";
 import { LeaderboardStats } from "../components/LeaderBoardStats";
+import { fetchScores } from "../../game-simulation/store/score.slice";
 
 export const Leaderboard = () => {
    const dispatch = useDispatch();
-   const { entries, highestScore, averageScore, totalPlayers, loading, error, } = useSelector((state) => state.leaderboard);
+   const { scores, highestScore, averageScore, totalPlayers, loading, error } = useSelector((state) => state.score)
 
    const [alert, setAlert] = useState(null);
 
    useEffect(() => {
       // TODO: REMOVE THIS LATER
       // dispatch(clearLeaderboard()).unwrap()
-      dispatch(fetchLeaderboard());
+      dispatch(fetchScores());
    }, [dispatch]);
 
 
@@ -124,7 +124,7 @@ export const Leaderboard = () => {
             </div>
 
             {/* Empty State */}
-            {!error && entries.length === 0 && (
+            {!error && scores.length === 0 && (
                <div className="text-center py-16">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-network-surface-light dark:bg-network-surface rounded-full mb-4">
                      <Medal className="w-10 h-10 text-network-text-dark dark:text-network-text" />
@@ -139,19 +139,19 @@ export const Leaderboard = () => {
             )}
 
             {/* Leaderboard Table */}
-            {!error && entries.length > 0 && (
+            {!error && scores.length > 0 && (
                <>
                   <LeaderboardStats
-                     entries={entries}
+                     entries={scores}
                      highestScore={highestScore}
                      averageScore={averageScore}
                      totalPlayers={totalPlayers}
                   />
 
                   <DataTable
-                     data={entries}
+                     data={scores}
                      columns={columns}
-                     totalItems={entries.length}
+                     totalItems={scores.length}
                      loading={loading}
                   />
                </>

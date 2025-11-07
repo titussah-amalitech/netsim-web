@@ -52,7 +52,8 @@ const CountdownTimer = ({
   const handlePauseResume = () => setActive((prev) => !prev);
   const handleReset = () => {
     endGame(currentUser?.name)
-    navigate(0)
+    console.log(currentUser.name)
+    // navigate(0)
   };
 
   return (

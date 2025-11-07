@@ -47,7 +47,7 @@ export const useScenario = () => {
             failureProbability: 0.1,
             trafficLoad: 0
          },
-         status: {
+         deviceStatus: {
             online: true,
             latency: 0,
             lastChecked: new Date().toISOString()

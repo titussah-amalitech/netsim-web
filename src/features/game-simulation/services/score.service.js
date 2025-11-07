@@ -153,47 +153,73 @@ class ScoreEngineService {
     };
   }
 
-  /**
-   * End the game and save score
-   * @param {string} playerName - The player's name
-   */
-  endGame(playerName) {
-    const gameSession = this.getCurrentGame();
-    if (!gameSession) {
-      console.warn("No game session to end");
-      return null;
-    }
+/**
+ * End the game and save score
+ * @param {string} playerName - The player's name
+ */
+endGame(playerName) {
+  const gameSession = this.getCurrentGame();
 
-    gameSession.isActive = false;
-    gameSession.endTime = Date.now();
-
-    const gameSummary = {
-      name: playerName,
-      score: gameSession.score,
-      timestamp: new Date().toISOString(),
-      scenarioName: gameSession.scenarioName,
-      issuesFixed: gameSession.issuesFixed,
-      totalIssues: gameSession.totalIssues,
-      duration: Math.floor((gameSession.endTime - gameSession.startTime) / 1000),
-      id: Date.now(),
-    };
-
-    // Save to "scores"
-    const scores = localStorageService.get(this.SCORES_KEY, []);
-    scores.push(gameSummary);
-    localStorageService.set(this.SCORES_KEY, scores);
-
-    // Clear game session
-    localStorage.removeItem(this.STORAGE_KEY);
-
-    return gameSummary;
+  // Return nothing if no game session or zero score
+  if (!gameSession || gameSession.score === 0) {
+    return null;
   }
+
+  gameSession.isActive = false;
+  gameSession.endTime = Date.now();
+
+  const gameSummary = {
+    name: playerName.trim(),
+    score: gameSession.score,
+    timestamp: new Date().toISOString(),
+    scenarioName: gameSession.scenarioName,
+    issuesFixed: gameSession.issuesFixed,
+    totalIssues: gameSession.totalIssues,
+    duration: Math.floor((gameSession.endTime - gameSession.startTime) / 1000),
+    id: Date.now(),
+  };
+
+  // Get saved scores
+  const scores = localStorageService.get(this.SCORES_KEY, []);
+
+  // Check if this player already has a score
+  const existingIndex = scores.findIndex(
+    (s) => s.name.toLowerCase() === playerName.trim().toLowerCase()
+  );
+
+  if (existingIndex !== -1) {
+    const existing = scores[existingIndex];
+
+    // Keep the higher score only
+    if (gameSummary.score > existing.score) {
+      scores[existingIndex] = gameSummary;
+    }
+  } else {
+    // Add new player to the list
+    scores.push(gameSummary);
+  }
+
+  // Save updated list
+  localStorageService.set(this.SCORES_KEY, scores);
+
+  // Clear current game session
+  localStorage.removeItem(this.STORAGE_KEY);
+
+  return gameSummary;
+}
 
   /**
    * Clear current game session
    */
   clearGame() {
     localStorage.removeItem(this.STORAGE_KEY);
+  }
+
+  /**
+   * Fetch all scores 
+   */
+  getScores() {
+    return Promise.resolve(localStorageService.get(this.SCORES_KEY) || []);
   }
 }
 

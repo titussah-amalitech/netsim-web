@@ -49,6 +49,22 @@ export const loadCurrentGame = createAsyncThunk(
   }
 );
 
+// Get all saved scores
+export const fetchScores = createAsyncThunk(
+  "score/fetchScores",
+  async (_, thunkAPI) => {
+    try {
+      const scores = await scoreService.getScores();
+
+      // Sort by score descending and take top 10
+      const sorted = scores.sort((a, b) => b.score - a.score).slice(0, 10);
+      return sorted;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.message);
+    }
+  }
+);
+
 // End game
 export const endGame = createAsyncThunk(
   "score/endGame",
@@ -64,6 +80,7 @@ export const endGame = createAsyncThunk(
 const scoreSlice = createSlice({
   name: "score",
   initialState: {
+    scores: [],
     currentScore: 0,
     issuesFixed: 0,
     totalIssues: 0,
@@ -76,6 +93,9 @@ const scoreSlice = createSlice({
     error: null,
     gameStarted: false,
     pointNotification: null, // For showing point awards
+    highestScore: 0,
+    averageScore: 0,
+    totalPlayers: 0,
   },
   reducers: {
     clearScore: (state) => {
@@ -171,6 +191,28 @@ const scoreSlice = createSlice({
             state.elapsedTime = stats.elapsedTime;
           }
         }
+      })
+
+      // Handle fetchScores
+      .addCase(fetchScores.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchScores.fulfilled, (state, action) => {
+        state.loading = false;
+        state.scores = action.payload;
+
+        // Calculate leaderboard stats
+        const scores = action.payload.map((e) => e.score);
+        state.highestScore = scores.length ? Math.max(...scores) : 0;
+        state.averageScore = scores.length
+          ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length)
+          : 0;
+        state.totalPlayers = scores.length;
+      })
+      .addCase(fetchScores.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       // End game
