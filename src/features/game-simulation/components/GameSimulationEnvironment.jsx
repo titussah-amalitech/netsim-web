@@ -30,61 +30,61 @@ const [score, setScore] = useState(0);
 const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
 const { currentUser } = useSelector((state) => state.users);
 const { playSound } = useAlertSound(false);
-useEffect(() => {
-  if (!currentUser || !currentScenario) return;
+  useEffect(() => {
+    if (!currentUser || !currentScenario) return;
 
-  // Only initialize if no current game
-  const existingGame = scoreService.getCurrentGame();
-  if (!existingGame) {
-    scoreService.initializeGame(
-      currentScenario?.id || currentScenario?._id,
-      currentUser?._id || currentUser?.id,
-      currentScenario.name
-    );
-  }
-}, [currentUser, currentScenario]);
+    // Only initialize if no current game
+    const existingGame = scoreService.getCurrentGame();
+    if (!existingGame) {
+      scoreService.initializeGame(
+        currentScenario?.id || currentScenario?._id,
+        currentUser?._id || currentUser?.id,
+        currentScenario.name
+      );
+    }
+  }, [currentUser, currentScenario]);
 
-const createNodeFromDevice = (device) => ({
-  id: device._id,
-  type: 'deviceNode',
-  position: { x: device.position.x, y: device.position.y },
-  data: {
-    label: (
-      <div
-        className={`
-          p-2 rounded font-medium text-sm text-white text-center rounded-full
-          ${
-            device.parameters.latencyThreshold > 100 
-            ? "bg-red-500"
-            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
-            ? "bg-yellow-400 text-black"
-            : "bg-green-500"
-          }
-        `}
-        onClick={() => setDeviceToEdit(device)}
-      >
-        {device.device.type === 'router' && <DEVICE_TYPES.router.icon size={24} />}
-        {device.device.type === 'switch' && <DEVICE_TYPES.switch.icon size={24} />}
-        {device.device.type === 'server' && <DEVICE_TYPES.server.icon size={24} />}
-        {device.device.type === 'pc' && <DEVICE_TYPES.pc.icon size={24} />}
-        {device.device.type === 'firewall' && <DEVICE_TYPES.firewall.icon size={24} />}
-        {device.device.type === 'internet' && <DEVICE_TYPES.internet.icon size={24} />}
-        {device.device.type === 'cloud Service' && <DEVICE_TYPES.cloud.icon size={24} />}
-        {device.device.type === 'database' && <DEVICE_TYPES.database.icon size={24} />}
-        {device.device.type === 'accessPoint' && <DEVICE_TYPES.accessPoint.icon size={24} />}
-      </div>
-    ),
-    color: device.parameters.latencyThreshold > 100 
-            ? "border-red-500"
-            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
-            ? "border-yellow-400 text-black"
-            : "border-green-500",
-    device,
-  },
-  sourcePosition: 'right',
-  targetPosition: 'left',
-  draggable: true,
-});
+  const createNodeFromDevice = (device) => ({
+    id: device._id,
+    type: 'deviceNode',
+    position: { x: device.position.x, y: device.position.y },
+    data: {
+      label: (
+        <div
+          className={`
+            p-2 rounded font-medium text-sm text-white text-center rounded-full
+            ${
+              device.parameters.latencyThreshold > 100 
+              ? "bg-red-500"
+              : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
+              ? "bg-yellow-400 text-black"
+              : "bg-green-500"
+            }
+          `}
+          onClick={() => setDeviceToEdit(device)}
+        >
+          {device.device.type === 'router' && <DEVICE_TYPES.router.icon size={24} />}
+          {device.device.type === 'switch' && <DEVICE_TYPES.switch.icon size={24} />}
+          {device.device.type === 'server' && <DEVICE_TYPES.server.icon size={24} />}
+          {device.device.type === 'pc' && <DEVICE_TYPES.pc.icon size={24} />}
+          {device.device.type === 'firewall' && <DEVICE_TYPES.firewall.icon size={24} />}
+          {device.device.type === 'internet' && <DEVICE_TYPES.internet.icon size={24} />}
+          {device.device.type === 'cloud Service' && <DEVICE_TYPES.cloud.icon size={24} />}
+          {device.device.type === 'database' && <DEVICE_TYPES.database.icon size={24} />}
+          {device.device.type === 'accessPoint' && <DEVICE_TYPES.accessPoint.icon size={24} />}
+        </div>
+      ),
+      color: device.parameters.latencyThreshold > 100 
+              ? "border-red-500"
+              : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
+              ? "border-yellow-400 text-black"
+              : "border-green-500",
+      device,
+    },
+    sourcePosition: 'right',
+    targetPosition: 'left',
+    draggable: true,
+  });
 
 // local nodes state is used purely for ReactFlow interaction (dragging, etc.).
 // Keep it in sync with the canonical scenario devices below.
@@ -92,9 +92,9 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
 
 // Whenever the canonical scenario changes (devices updated elsewhere), rebuild nodes
 // so the React Flow view reflects the latest device properties.
-useEffect(() => {
-  setNodes(currentScenario.devices.map(createNodeFromDevice));
-}, [currentScenario]);
+  useEffect(() => {
+    setNodes(currentScenario.devices.map(createNodeFromDevice));
+  }, [currentScenario]);
 
 
 
@@ -167,7 +167,7 @@ useEffect(() => {
         ...node.data.device,
         ...updates,
         parameters: { ...node.data.device.parameters, ...(updates.parameters || {}) },
-        status: { ...node.data.device.status, ...(updates.status || {}) },
+        deviceStatus: { ...node.data.device.deviceStatus, ...(updates.deviceStatus || {}) },
       };
       
       
@@ -221,25 +221,34 @@ useEffect(() => {
       // pick a random device
       const randomIndex = Math.floor(Math.random() * prevScenario.devices.length);
       const randomDevice = prevScenario.devices[randomIndex];
-      const newIssue = randomDevice.parameters.latencyThreshold + Math.floor(Math.random() * 100 + 50) // add 100–200ms latency
+      const newLatency = randomDevice.parameters.latencyThreshold + Math.floor(Math.random() * 100 + 50) // add 100–200ms latency
+      const newPing = randomDevice.parameters.pingInterval + Math.floor(Math.random() * 100 + 50)
+      const newProbability = randomDevice.parameters.failureProbability + Math.floor(Math.random() * 100 + 50)
 
       // modify it
       const updatedDevice = {
         ...randomDevice,
         parameters: {
           ...randomDevice.parameters,
-          latencyThreshold: newIssue,
+          latencyThreshold: newLatency,
         },
+        deviceStatus: {
+          online: newLatency > 50 ? false : true,
+          latency: newLatency,
+          ...randomDevice.deviceStatus,
+        },
+        
       };
 
-      if(newIssue > 50){
-        newIssue > 100 ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
+      console.log(updatedDevice)
+      if(newLatency > 50){
+        newLatency > 100 ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
                             : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
-        playSound(newIssue > 100 ? "red" : "yellow");
+        playSound(newLatency > 100 ? "red" : "yellow");
       }
 
       setActiveIssue(updatedDevice._id); // mark as current issue
-      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newIssue > 100 ? "red" : "yellow"), 1000)
+      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 ? "red" : "yellow"), 1000)
       setIssueResolved(false); // reset state
 
       return {
@@ -316,11 +325,21 @@ useEffect(() => {
             e.preventDefault();
             handleApplyDeviceChanges(deviceToEdit._id, {
               parameters: deviceToEdit.parameters,
-              status: deviceToEdit.status,
+              deviceStatus: deviceToEdit.status,
             }); 
           }}
           className="space-y-3 mt-2"
         >
+          <div>
+            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
+              Device
+            </label>
+            <div
+              className={"px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded"}
+            >
+              {deviceToEdit.device.name}
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
               Ping Interval (s)
@@ -336,7 +355,6 @@ useEffect(() => {
                         rounded text-network-text-darker dark:text-network-text-light focus:outline-none
                         focus:ring-2 focus:ring-blue-400"
               min="1"
-              disabled
             />
           </div>
 
@@ -374,7 +392,6 @@ useEffect(() => {
                         focus:ring-2 focus:ring-blue-400"
               min="0"
               max="100"
-              disabled
             />
           </div>
 

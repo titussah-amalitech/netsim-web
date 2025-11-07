@@ -179,9 +179,12 @@ class ScoreEngineService {
     };
 
     // Save to "scores"
+    console.log(gameSummary)
     const scores = localStorageService.get(this.SCORES_KEY, []);
+    
     scores.push(gameSummary);
     localStorageService.set(this.SCORES_KEY, scores);
+    console.log(scores)
 
     // Clear game session
     localStorage.removeItem(this.STORAGE_KEY);

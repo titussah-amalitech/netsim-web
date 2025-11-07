@@ -347,8 +347,8 @@ export const DeviceProperties = ({
                   <div className="px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded text-network-text-darker dark:text-network-text-light">
                      <div className="flex justify-between items-center">
                         <span className="text-sm">Status:</span>
-                        <span className={`${device.status?.online ? 'text-network-success' : 'text-network-error'}`}>
-                           {device.status?.online ? 'Online' : 'Offline'}
+                        <span className={`${device.deviceStatus?.online ? 'text-network-success' : 'text-network-error'}`}>
+                           {device.deviceStatus?.online ? 'Online' : 'Offline'}
                         </span>
                      </div>
                   </div>

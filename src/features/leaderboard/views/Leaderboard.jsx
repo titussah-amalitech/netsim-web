@@ -13,7 +13,7 @@ export const Leaderboard = () => {
    const { entries, highestScore, averageScore, totalPlayers, loading, error, } = useSelector((state) => state.leaderboard);
 
    const [alert, setAlert] = useState(null);
-
+   console.log("Entries: ",entries)
    useEffect(() => {
       // TODO: REMOVE THIS LATER
       // dispatch(clearLeaderboard()).unwrap()
