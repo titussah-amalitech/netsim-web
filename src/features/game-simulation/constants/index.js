@@ -69,7 +69,7 @@ export const officeNetworkScenario = {
   _id: "scenario_001",
   name: "Office Network",
   difficulty: "easy",
-  timeLimit: 900,
+  timeLimit: 10,
   devices: [
     {
       _id: "temp_1759761987795",
@@ -151,7 +151,7 @@ export const officeNetworkScenario = {
       },
       deviceStatus: {
         online: true,
-        latency: 70,
+        latency: 0,
         lastChecked: "2025-10-06T14:46:47.651Z",
       },
       connections: ["temp_1759762003616"], // Connected to Switch_1
@@ -168,7 +168,7 @@ export const officeNetworkScenario = {
       },
       deviceStatus: {
         online: true,
-        latency: 100,
+        latency: 0,
         lastChecked: "2025-10-06T14:46:50.208Z",
       },
       connections: ["temp_1759761987795"], // Connected to Router_1
@@ -185,7 +185,7 @@ export const officeNetworkScenario = {
         problemType: "packet_drops",
       },
       deviceStatus: {
-        online: false,
+        online: true,
         latency: 0,
         lastChecked: "2025-10-06T14:46:52.281Z",
       },

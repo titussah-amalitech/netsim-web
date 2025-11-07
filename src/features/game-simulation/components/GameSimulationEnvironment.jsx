@@ -22,14 +22,16 @@ import { useAlertSound } from '../hooks/useAlertSound';
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = ({ scenario }) => {
-const [deviceToEdit, setDeviceToEdit] = useState(null);
-const [activeIssue, setActiveIssue] = useState(null);
-const [issueResolved, setIssueResolved] = useState(false);
-const [alertsArray, setAlertsArray] = useState([]);
-const [score, setScore] = useState(0);
-const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
-const { currentUser } = useSelector((state) => state.users);
-const { playSound } = useAlertSound(false);
+  const [deviceToEdit, setDeviceToEdit] = useState(null);
+  const [activeIssue, setActiveIssue] = useState(null);
+  const [issueResolved, setIssueResolved] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [gamePaused, setGamePaused] = useState(false);
+  const [score, setScore] = useState(0);
+  const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
+  const { currentUser } = useSelector((state) => state.users);
+  const { playSound } = useAlertSound(false);
+
   useEffect(() => {
     if (!currentUser || !currentScenario) return;
 
@@ -54,9 +56,9 @@ const { playSound } = useAlertSound(false);
           className={`
             p-2 rounded font-medium text-sm text-white text-center rounded-full
             ${
-              device.parameters.latencyThreshold > 100 
+              !device.deviceStatus.online 
               ? "bg-red-500"
-              : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
+              : device.deviceStatus.latency > 50 
               ? "bg-yellow-400 text-black"
               : "bg-green-500"
             }
@@ -74,9 +76,9 @@ const { playSound } = useAlertSound(false);
           {device.device.type === 'accessPoint' && <DEVICE_TYPES.accessPoint.icon size={24} />}
         </div>
       ),
-      color: device.parameters.latencyThreshold > 100 
+      color: !device.deviceStatus.online 
               ? "border-red-500"
-              : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
+              : device.deviceStatus.latency > 50
               ? "border-yellow-400 text-black"
               : "border-green-500",
       device,
@@ -110,13 +112,14 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
   // Helper to build the label JSX for a device (keeps logic consistent with
   // initial node creation)
   const buildLabel = (device) => (
+    
     <div
       className={`
         p-2 rounded font-medium text-sm text-white text-center rounded-full
         ${
-          device.parameters.pingInterval > 100 
+          !device.deviceStatus.online
             ? "bg-red-500"
-            : device.parameters.latencyThreshold > 50 && device.parameters.latencyThreshold <= 100
+            : device.deviceStatus.latency > 50 
             ? "bg-yellow-400 text-black"
             : "bg-green-500"
         }
@@ -142,51 +145,88 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
       setIssueResolved(true);
   };
 
+  const handleOncomplete = () => {
+    const existingGame = scoreService.getCurrentGame();
+    if(existingGame) scoreService.endGame(currentUser?.name)
+      setGameOver(true)
+  }
+
+  const handleGamePaused = () => {
+    console.log("Game Puased")
+    setGamePaused(prev => !prev)
+    console.log(gamePaused)
+  }
+
   // Apply updates coming from DeviceProperties. DeviceProperties will call
   // onUpdateDevice(deviceId, updates). We must accept these args so updates
   // are applied correctly and our local `nodes` state is kept in sync.
   const handleApplyDeviceChanges = (deviceId, updates) => {
-  if (!deviceId || !updates) return;
+    if (!deviceId || !updates) return;
 
-  // Update the canonical scenario
-  setCurrentScenario((prevScenario) => ({
-    ...prevScenario,
-    devices: prevScenario.devices.map((dev) =>
-      dev._id === deviceId
-        ? deviceToEdit
-        : dev
-    ),
-  }));
+    // // Update the canonical scenario
+    // console.log(deviceToEdit)
+    // const deviceToUpdate = {deviceToEdit}
 
-  // Update local nodes - create completely new objects to force re-render
-  setNodes((prev) =>
-    prev.map((node) => {
-      if (node.id !== deviceId) return node;
-      
-      const updatedDevice = {
-        ...node.data.device,
-        ...updates,
-        parameters: { ...node.data.device.parameters, ...(updates.parameters || {}) },
-        deviceStatus: { ...node.data.device.deviceStatus, ...(updates.deviceStatus || {}) },
-      };
-      
-      
+    setCurrentScenario((prevScenario) => {
+      if (!prevScenario.devices || prevScenario.devices.length === 0) return prevScenario;
+
       return {
-        ...node,
-        data: {
-          ...node.data,
-          device: updatedDevice,
-          label: buildLabel(updatedDevice),
-          color: updatedDevice.parameters.latencyThreshold > 100 
-            ? 'border-red-500'
-            : updatedDevice.parameters.latencyThreshold > 50 || updatedDevice.parameters.latencyThreshold <= 100
-            ? 'border-yellow-400 text-black'
-            : 'border-green-500',
-        },
+        ...prevScenario,
+        devices: prevScenario.devices.map(d =>
+          d._id === deviceId? {
+            ...d,
+            parameters: {
+              ...d.parameters,
+              pingInterval: updates.parameters.pingInterval,
+              failureProbability: updates.parameters.failureProbability
+            },
+            deviceStatus: {
+              ...d.deviceStatus,
+              online: updates.parameters.pingInterval > 30 || updates.deviceStatus.latency > 100 || updates.parameters.failureProbability > 0.5 ? false : true,
+              latency: updates.deviceStatus.latency
+            }
+          } : d
+        ),
       };
-    })
+    });
+
+  // console.log("currentScenario: ", currentScenario)
+  // Update local nodes - create completely new objects to force re-render
+    setNodes((prev) =>
+      prev.map((node) => {
+        if (node.id !== deviceId) return node;
+        
+        const updatedDevice = {
+          ...node.data.device,
+          ...updates,
+          parameters: { ...node.data.device.parameters, ...(updates.parameters || {}) },
+          deviceStatus: { ...node.data.device.deviceStatus, 
+            online: updates.parameters.pingInterval > 30 || updates.parameters.failureProbability > 50 || updates.deviceStatus.latency > 100 ? false : true,
+            latency: updates.deviceStatus.latency
+          },
+        };
+        
+        // console.log("Device for buildLabel: ",updatedDevice)
+        const updatedNode = {
+          ...node,
+          data: {
+            ...node.data,
+            device: updatedDevice,
+            label: buildLabel(updatedDevice),
+            color: !updatedDevice.deviceStatus.online 
+              ? 'border-red-500'
+              : updatedDevice.deviceStatus.latency > 50
+              ? 'border-yellow-400 text-black'
+              : 'border-green-500',
+          },
+        };
+        // console.log("Updated node: ", updatedNode)
+        return updatedNode
+
+      })
     );
-    if (deviceToEdit.parameters.latencyThreshold <= 50) {
+    console.log("Device to edit: ",deviceToEdit)
+    if (deviceToEdit.parameters.pingInterval <= 30 && deviceToEdit.parameters.failureProbability <= 0.5 && deviceToEdit.deviceStatus.latency <= 50) {
       handleIssueFix(deviceId);
     }
     setDeviceToEdit(null);
@@ -202,9 +242,9 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
         animated: true,
         style: {
           stroke:
-            nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold > 100 
+            !nodes.find((n) => n.id === device._id)?.data.device.deviceStatus.online
               ? "#ef4444"
-              : nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold > 50 && nodes.find((n) => n.id === device._id)?.data.device.parameters.latencyThreshold <= 100
+              : nodes.find((n) => n.id === device._id)?.data.device.deviceStatus.latency > 50
               ? "#eab308"
               : "#16a34a",
           strokeWidth: 5,
@@ -215,40 +255,45 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
 
 
   const triggerRandomIssue = useCallback(() => {
+    if(gameOver || gamePaused) {
+      console.log("Game Paused or GameOver")
+      return;
+    };
     setCurrentScenario(prevScenario => {
       if (!prevScenario.devices || prevScenario.devices.length === 0) return prevScenario;
 
       // pick a random device
       const randomIndex = Math.floor(Math.random() * prevScenario.devices.length);
       const randomDevice = prevScenario.devices[randomIndex];
-      const newLatency = randomDevice.parameters.latencyThreshold + Math.floor(Math.random() * 100 + 50) // add 100–200ms latency
-      const newPing = randomDevice.parameters.pingInterval + Math.floor(Math.random() * 100 + 50)
-      const newProbability = randomDevice.parameters.failureProbability + Math.floor(Math.random() * 100 + 50)
+      const newLatency = Math.floor(Math.random() * 150) // add 100–200ms latency
+      const newPing = Math.floor(Math.random() * 100)
+      const newProbability = Math.random().toFixed(1)
 
       // modify it
       const updatedDevice = {
         ...randomDevice,
+        deviceStatus: {
+          ...randomDevice.deviceStatus,
+          online: newLatency > 100 || newPing > 30 || newProbability > 0.5 ? false : true,
+          latency: newLatency,
+        },
         parameters: {
           ...randomDevice.parameters,
-          latencyThreshold: newLatency,
-        },
-        deviceStatus: {
-          online: newLatency > 50 ? false : true,
-          latency: newLatency,
-          ...randomDevice.deviceStatus,
+          pingInterval: newPing,
+          failureProbability: newProbability
         },
         
       };
 
-      console.log(updatedDevice)
-      if(newLatency > 50){
-        newLatency > 100 ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
+      // console.log(updatedDevice)
+      if(!updatedDevice.deviceStatus.online || updatedDevice.deviceStatus.latency > 50){
+        !updatedDevice.deviceStatus.online ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
                             : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
-        playSound(newLatency > 100 ? "red" : "yellow");
+        playSound(!updatedDevice.deviceStatus.online  ? "red" : "yellow");
       }
 
       setActiveIssue(updatedDevice._id); // mark as current issue
-      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 ? "red" : "yellow"), 1000)
+      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 || newProbability > 0.5 || newPing > 30 ? "red" : "yellow"), 1000)
       setIssueResolved(false); // reset state
 
       return {
@@ -258,6 +303,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
         ),
       };
     });
+    // console.log("scenario: ", currentScenario)
   }, []);
 
 
@@ -268,7 +314,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
     }
   }, [activeIssue, triggerRandomIssue]);
 
-  //Randomly simulate device issues every few seconds
+  // Randomly simulate device issues every few seconds
   useEffect(() => {
     if (!activeIssue) return;
 
@@ -277,15 +323,16 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
     );
     if (!affectedDevice) return;
 
-    const { latencyThreshold } = affectedDevice.parameters;
+    const { deviceStatus } = affectedDevice;
     
-   
+    
     // Only mark resolved if it was previously failing AND now is back to normal
-    if (issueResolved === false && latencyThreshold <= 50) {
+    if (issueResolved === false && deviceStatus.online && deviceStatus.latency <= 50) {
       
-
+      
       // trigger next issue after 30s
       setTimeout(() => triggerRandomIssue(), 30000);
+      
     }
   }, [currentScenario, activeIssue, issueResolved]);
 
@@ -295,15 +342,15 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
       <div className="flex flex-wrap gap-2 ms-auto">
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(node =>  node.data.device.parameters.latencyThreshold > 100).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(node =>  !node.data.device.deviceStatus.online ).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(node => node.data.device.parameters.latencyThreshold > 50 && node.data.device.parameters.latencyThreshold <= 100).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(node => node.data.device.deviceStatus.online && node.data.device.deviceStatus.latency > 50).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(node => node.data.device.parameters.latencyThreshold <= 50).length}</p>
+          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(node => node.data.device.deviceStatus.online).length}</p>
         </div>
         <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
           <GoStack size={24} className="text-network-primary mr-2" />
@@ -312,9 +359,15 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
       </div>
 
       <div className="flex justify-between items-center  border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
-            <p className='text-xl dark:text-network-light font-bold'>Score: {score}</p>
+            <p className='text-xl dark:text-network-light font-bold'>{!gameOver ? `Score: ${score}` : ""}</p>
             
-            <CountdownTimer initialTime={300} isRunning={true} className="mb-2 dark:text-network-light" endGame={scoreService.endGame.bind(scoreService)}/>
+            <CountdownTimer initialTime={currentScenario.timeLimit} 
+                            isRunning={!gameOver && !gamePaused} 
+                            scenario={scenario || officeNetworkScenario} 
+                            onComplete={handleOncomplete} 
+                            handleGamePaused={handleGamePaused}
+                            className="mb-2 dark:text-network-light"  
+            />
       </div>
       <Modal isOpen={deviceToEdit !== null}
              title={"Adjust Device Parameters"}
@@ -325,7 +378,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
             e.preventDefault();
             handleApplyDeviceChanges(deviceToEdit._id, {
               parameters: deviceToEdit.parameters,
-              deviceStatus: deviceToEdit.status,
+              deviceStatus: deviceToEdit.deviceStatus,
             }); 
           }}
           className="space-y-3 mt-2"
@@ -364,10 +417,10 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
             </label>
             <input
               type="number"
-              value={deviceToEdit.parameters.latencyThreshold || 30}
+              value={deviceToEdit.deviceStatus.latency}
               onChange={(e) => setDeviceToEdit(prev => ({
                 ...prev,
-                parameters: { ...(prev.parameters || {}), latencyThreshold: Number(e.target.value) }
+                deviceStatus: { ...(prev.deviceStatus || {}), latency: Number(e.target.value) }
               }))}
               className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
                         rounded text-network-text-darker dark:text-network-text-light focus:outline-none
@@ -402,10 +455,10 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
             <div
               className={`px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
                           rounded  ${
-                            deviceToEdit.parameters.latencyThreshold <= 100 ? 'text-network-success' : 'text-network-error'
+                            deviceToEdit.deviceStatus.online  ? 'text-network-success' : 'text-network-error'
                           }`}
             >
-              {deviceToEdit.parameters.latencyThreshold <= 100 ? 'Online' : 'Offline'}
+              {deviceToEdit.deviceStatus.online ? 'Online' : 'Offline'}
             </div>
           </div>
 
@@ -419,8 +472,9 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
           </Button>
         </Form>}
       </Modal>
-      <div className="h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
+      {!gameOver ? <div className="h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
         <ReactFlow
+          key={nodes.length + score}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -431,7 +485,9 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
         >
           <Background  />
         </ReactFlow>
-      </div>
+      </div> : <div className="flex justify-center items-center h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
+              <p className='text-7xl dark:text-network-light font-bold'>Score: {score}</p>
+        </div>}
       
     </div>
   );

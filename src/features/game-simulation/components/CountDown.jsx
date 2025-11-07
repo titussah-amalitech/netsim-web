@@ -3,13 +3,16 @@ import { Button } from "../../../components";
 import { FaPause, FaPlay, FaRedo } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { scoreService } from '../services/score.service';
+
 
 const CountdownTimer = ({
   initialTime = 300, // default 5 minutes
   isRunning = true,
   onComplete = () => {},
   className = "",
-  endGame
+  scenario,
+  handleGamePaused
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
@@ -49,11 +52,19 @@ const CountdownTimer = ({
     return () => clearInterval(intervalRef.current);
   }, [active, onComplete]);
 
-  const handlePauseResume = () => setActive((prev) => !prev);
+  const handlePauseResume = () => {setActive((prev) => !prev); handleGamePaused();};
   const handleReset = () => {
-    endGame(currentUser?.name)
-    console.log(currentUser.name)
-    // navigate(0)
+    if (!currentUser || !scenario) return;
+    
+    // Only initialize if no current game
+    const existingGame = scoreService.getCurrentGame();
+    if (existingGame) scoreService.clearGame();
+    scoreService.initializeGame(
+      scenario?.id || scenario?._id,
+      currentUser?._id || currentUser?.id,
+      scenario.name
+    );
+    navigate(0)
   };
 
   return (
@@ -70,7 +81,7 @@ const CountdownTimer = ({
       </Button>
       <Button className=" hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" onClick={handleReset}>
         <FaRedo size={14} />
-        Reset
+        {active ? "Reset" : "Replay"}
       </Button>
     </div>
   );
