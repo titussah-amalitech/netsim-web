@@ -32,7 +32,7 @@ function App() {
             </Route>
           </Routes>
         </div>
-        <Toaster position="top-right" reverseOrder={false} />;
+        <Toaster position="top-right" reverseOrder={false} />
       </GlobalAuthWrapper>
     </BrowserRouter>
   )

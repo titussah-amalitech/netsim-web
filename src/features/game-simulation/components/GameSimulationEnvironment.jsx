@@ -10,7 +10,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import CountdownTimer from './CountDown';
 import { DeviceNode } from '../../../components/common/DeviceNode';
-import { TEST_SCENARIO, officeNetworkScenario} from '../constants';
+import { officeNetworkScenario } from '../constants';
 import { Button, Device, Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import Form from '../../../components/common/Form';
@@ -19,6 +19,7 @@ import { showRealTimeAlert } from './RealTimeAlerts';
 import { scoreService } from '../services/score.service';
 import { useSelector } from 'react-redux';
 import { useAlertSound } from '../hooks/useAlertSound';
+
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = ({ scenario }) => {
@@ -88,26 +89,21 @@ const GameSimulationEnvironment = ({ scenario }) => {
     draggable: true,
   });
 
-// local nodes state is used purely for ReactFlow interaction (dragging, etc.).
-// Keep it in sync with the canonical scenario devices below.
-const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeFromDevice));
+  // local nodes state is used purely for ReactFlow interaction (dragging, etc.).
+  // Keep it in sync with the canonical scenario devices below.
+  const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeFromDevice));
 
-// Whenever the canonical scenario changes (devices updated elsewhere), rebuild nodes
-// so the React Flow view reflects the latest device properties.
+  // Whenever the canonical scenario changes (devices updated elsewhere), rebuild nodes
+  // so the React Flow view reflects the latest device properties.
   useEffect(() => {
     setNodes(currentScenario.devices.map(createNodeFromDevice));
   }, [currentScenario]);
-
-
-
 
   // Handlers 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
   );
-
-
 
   // Helper to build the label JSX for a device (keeps logic consistent with
   // initial node creation)
@@ -141,8 +137,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
   const handleIssueFix = (deviceId) => {
     const result = scoreService.recordIssueFix(deviceId);
     if (result) setScore(result.totalScore);
-      console.log(`Device ${deviceId} manually fixed!`);
-      setIssueResolved(true);
+    setIssueResolved(true);
   };
 
   const handleOncomplete = () => {
@@ -282,7 +277,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
           pingInterval: newPing,
           failureProbability: newProbability
         },
-        
+
       };
 
       // console.log(updatedDevice)
@@ -308,7 +303,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
 
 
   useEffect(() => {
-  // Start the first issue when the game loads
+    // Start the first issue when the game loads
     if (!activeIssue) {
       setTimeout(() => triggerRandomIssue(), 10000)
     }
@@ -370,10 +365,10 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
             />
       </div>
       <Modal isOpen={deviceToEdit !== null}
-             title={"Adjust Device Parameters"}
-             onClose={() => setDeviceToEdit(null)}
+        title={"Adjust Device Parameters"}
+        onClose={() => setDeviceToEdit(null)}
       >
-       {deviceToEdit && <Form
+        {deviceToEdit && <Form
           onSubmit={(e) => {
             e.preventDefault();
             handleApplyDeviceChanges(deviceToEdit._id, {
@@ -483,7 +478,7 @@ const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeF
           fitView
 
         >
-          <Background  />
+          <Background />
         </ReactFlow>
       </div> : <div className="flex justify-center items-center h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
               <p className='text-7xl dark:text-network-light font-bold'>Score: {score}</p>
