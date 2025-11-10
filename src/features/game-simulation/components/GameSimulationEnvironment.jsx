@@ -33,6 +33,35 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
   const { currentUser } = useSelector((state) => state.users);
   const { playSound } = useAlertSound(false);
+  const [showLogs, setShowLogs] = useState(false);
+  const [systemLogs, setSystemLogs] = useState([]);
+
+  // Track which devices have already been alerted
+  const alertedDevices = useRef(new Set());
+
+  // Helper function to add a log entry (with duplication guard)
+  const addLogEntry = useCallback((device, message, indication) => {
+    if (!device) return;
+
+    const now = new Date();
+    const newLog = {
+      device: device.device.name,
+      message,
+      time: now.toLocaleTimeString(),
+      date: now.toLocaleDateString(),
+      indication
+    };
+
+    setSystemLogs(prev => {
+      // Avoid identical consecutive messages for same device
+      const last = prev[0];
+      if (last && last.device === newLog.device && last.message === newLog.message) {
+        return prev;
+      }
+      return [newLog, ...prev];
+    });
+  }, []);
+
 
   useEffect(() => {
     if (!currentUser || !currentScenario) return;
@@ -218,6 +247,14 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
     if (deviceToEdit.parameters.pingInterval <= 30 && deviceToEdit.parameters.failureProbability <= 0.5 && deviceToEdit.deviceStatus.latency <= 50) {
       handleIssueFix(deviceId);
+      const fixedDevice = currentScenario.devices.find(d => d._id === deviceId);
+      if (fixedDevice) {
+        addLogEntry(
+          fixedDevice,
+          `${fixedDevice.device.name}: Issue resolved - status changed to online`,
+          'Low'
+        );
+      }
     }
     setDeviceToEdit(null);
   };
@@ -452,18 +489,37 @@ const GameSimulationEnvironment = ({ scenario }) => {
       </Modal>
 
       {!gameOver ? (
-        <div className="h-[600px] border-t-0 w-full border border-gray-600 rounded-b bg-network-light dark:bg-network-surface">
-          <ReactFlow
-            key={nodes.length + score}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            nodeTypes={nodeTypes}
-            nodesDraggable
-            fitView
-          >
-            <Background />
-          </ReactFlow>
+        <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">
+          <div className={`h-[600px] flex-1 bg-network-light dark:bg-network-surface ${showLogs ? 'hidden lg:flex' : 'flex'}`}>
+            <ReactFlow
+              key={nodes.length + score}
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              nodeTypes={nodeTypes}
+              nodesDraggable
+              fitView
+            >
+              <Background />
+            </ReactFlow>
+          </div>
+          <div className={` w-full lg:w-80  ${showLogs ? 'flex' : 'hidden lg:flex'} lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}>
+            <div className="p-3 sm:p-4 border-b border-gray-600 flex justify-between items-center">
+              <h3 className="text-base sm:text-lg font-bold dark:text-network-light">System Logs</h3>
+              <button
+                onClick={() => setShowLogs(false)}
+                className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden p-3 sm:p-4">
+              <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600">
+                <p className="italic mb-5">Monitoring network activity...</p>
+                {/* <DeviceLogger logs={systemLogs} /> */}
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="flex justify-center items-center h-[600px] border-t-0 w-full border border-gray-600 rounded-b bg-network-light dark:bg-network-surface">

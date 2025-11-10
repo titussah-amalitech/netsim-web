@@ -1,75 +1,11 @@
 
 
-export const TEST_SCENARIO = {
-  name: "University Network Outage",
-  difficulty: "hard",
-  timeLimit: 600, // 10 minutes
-  devices: [
-    {
-      id: "router-01",
-      type: "router",
-      name: "Main Campus Router",
-      deviceStatus: "red", // offline
-      ip: "192.168.1.1",
-      connections: ["switch-01", "server-01"],
-      position: { x: 200, y: 100 },
-      message: "Router disconnected — no packets being transmitted.",
-    },
-    {
-      id: "switch-01",
-      type: "switch",
-      name: "Core Switch",
-      deviceStatus: "yellow", // high latency
-      ip: "192.168.1.2",
-      connections: ["router-01", "workstation-01", "workstation-02"],
-      position: { x: 450, y: 100 },
-      message: "Packet loss detected — latency exceeding 250ms.",
-    },
-    {
-      id: "server-01",
-      type: "server",
-      name: "Database Server",
-      deviceStatus: "green", // online
-      ip: "192.168.1.3",
-      connections: ["router-01"],
-      position: { x: 700, y: 80 },
-      message: "Operational — 2 queries/sec load.",
-    },
-    {
-      id: "workstation-01",
-      type: "pc",
-      name: "Admin Workstation",
-      deviceStatus: "green",
-      ip: "192.168.1.10",
-      connections: ["switch-01"],
-      position: { x: 400, y: 300 },
-      message: "Running network monitoring tool.",
-    },
-    {
-      id: "workstation-02",
-      type: "pc",
-      name: "Student Lab PC",
-      deviceStatus: "yellow",
-      ip: "192.168.1.11",
-      connections: ["switch-01"],
-      position: { x: 600, y: 300 },
-      message: "Experiencing connection drops to server.",
-    },
-  ],
-  metadata: {
-    description:
-      "A simulated outage scenario at the university network where the main router is offline and the switch is experiencing latency. The player must diagnose and restore connectivity before the time runs out.",
-    createdBy: "admin",
-    createdAt: new Date().toISOString(),
-  },
-};
-
 
 export const officeNetworkScenario = {
   _id: "scenario_001",
   name: "Office Network",
   difficulty: "easy",
-  timeLimit: 300,
+  timeLimit: 50,
   devices: [
     {
       _id: "temp_1759761987795",

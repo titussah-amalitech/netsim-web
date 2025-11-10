@@ -65,14 +65,15 @@ const CountdownTimer = ({
     
     const existingGame = scoreService.getCurrentGame();
     if (existingGame) scoreService.clearGame();
+    console.log(existingGame)
     
     scoreService.initializeGame(
       scenario?.id || scenario?._id,
       currentUser?._id || currentUser?.id,
       scenario.name
     );
-    
-    navigate(0);
+
+    if (gameOver) navigate(0)
   };
 
   return (
