@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { CiWarning } from "react-icons/ci";
 import { CgDanger } from "react-icons/cg";
 import { SiTicktick } from "react-icons/si";
@@ -11,14 +11,15 @@ import 'reactflow/dist/style.css';
 import CountdownTimer from './CountDown';
 import { DeviceNode } from '../../../components/common/DeviceNode';
 import { officeNetworkScenario } from '../constants';
-import { Button, Device, Modal } from '../../../components';
+import { Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
-import Form from '../../../components/common/Form';
-import { useMemo } from "react";
 import { showRealTimeAlert } from './RealTimeAlerts';
 import { scoreService } from '../services/score.service';
 import { useSelector } from 'react-redux';
 import { useAlertSound } from '../hooks/useAlertSound';
+import { DeviceParamaters } from './DeviceParamaters';
+import { GameStats } from './GameStats';
+import DeviceLogger from './DeviceLogger';
 
 const nodeTypes = { deviceNode: DeviceNode };
 
@@ -261,7 +262,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
   const edges = useMemo(() => {
     return currentScenario.devices.flatMap((device) =>
-      device?.connections?.map((targetId) => ({
+      device?.connections?.map((targetId) => (({
         id: `e${device._id}-${targetId}`,
         source: device._id,
         target: targetId,
@@ -275,7 +276,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
               : "#16a34a",
           strokeWidth: 5,
         },
-      }))
+      })))
     );
   }, [currentScenario.devices, nodes]);
 
@@ -490,7 +491,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
       {!gameOver ? (
         <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">
-          <div className={`h-[600px] flex-1 bg-network-light dark:bg-network-surface ${showLogs ? 'hidden lg:flex' : 'flex'}`}>
+          <div className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${showLogs ? 'hidden lg:flex' : 'flex'}`}>
             <ReactFlow
               key={nodes.length + score}
               nodes={nodes}
@@ -503,7 +504,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
               <Background />
             </ReactFlow>
           </div>
-          <div className={` w-full lg:w-80  ${showLogs ? 'flex' : 'hidden lg:flex'} lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}>
+          <div className={`w-full lg:w-80  ${showLogs ? 'flex' : 'hidden lg:flex'} lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}>
             <div className="p-3 sm:p-4 border-b border-gray-600 flex justify-between items-center">
               <h3 className="text-base sm:text-lg font-bold dark:text-network-light">System Logs</h3>
               <button
@@ -516,7 +517,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
             <div className="flex-1 overflow-hidden p-3 sm:p-4">
               <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600">
                 <p className="italic mb-5">Monitoring network activity...</p>
-                {/* <DeviceLogger logs={systemLogs} /> */}
+                <DeviceLogger logs={systemLogs} />
               </div>
             </div>
           </div>

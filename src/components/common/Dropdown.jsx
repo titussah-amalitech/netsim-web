@@ -8,6 +8,7 @@ export const Dropdown = ({
   error,
   onChange,
   placeholder = "Select an option",
+  labelStyle="py-3",
   disabled = false,
   required = false,
   renderOption,   // prop for custom option rendering
@@ -105,7 +106,7 @@ export const Dropdown = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className={`w-full bg-network-lighter dark:bg-network-gray-light cursor-pointer border py-3 px-4 text-left rounded-md flex items-center justify-between transition-all focus:outline-none focus:ring-0 ${error
+          className={`w-full bg-network-lighter dark:bg-network-gray-light cursor-pointer border ${labelStyle} px-4 text-left rounded-md flex items-center justify-between transition-all focus:outline-none focus:ring-0 ${error
             ? "border-red-500 focus:ring-red-400"
             : "border-gray-300 dark:border-network-gray-light  "
             } ${disabled ? "bg-gray-200 dark:bg-gray-800 cursor-not-allowed" : ""}`}
