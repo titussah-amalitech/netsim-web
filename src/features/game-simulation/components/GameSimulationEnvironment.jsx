@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { CiWarning } from "react-icons/ci";
 import { CgDanger } from "react-icons/cg";
 import { SiTicktick } from "react-icons/si";
@@ -28,6 +28,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [issueResolved, setIssueResolved] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
+  const timeoutRef = useRef(null); // FIXED: Use ref instead of state
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
   const { currentUser } = useSelector((state) => state.users);
@@ -36,7 +37,6 @@ const GameSimulationEnvironment = ({ scenario }) => {
   useEffect(() => {
     if (!currentUser || !currentScenario) return;
 
-    // Only initialize if no current game
     const existingGame = scoreService.getCurrentGame();
     if (!existingGame) {
       scoreService.initializeGame(
@@ -47,7 +47,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
     }
   }, [currentUser, currentScenario]);
 
-  const createNodeFromDevice = (device) => ({
+  const createNodeFromDevice = useCallback((device) => ({
     id: device._id,
     type: 'deviceNode',
     position: { x: device.position.x, y: device.position.y },
@@ -87,28 +87,20 @@ const GameSimulationEnvironment = ({ scenario }) => {
     sourcePosition: 'right',
     targetPosition: 'left',
     draggable: true,
-  });
+  }), []);
 
-  // local nodes state is used purely for ReactFlow interaction (dragging, etc.).
-  // Keep it in sync with the canonical scenario devices below.
   const [nodes, setNodes] = useState(() => currentScenario.devices.map(createNodeFromDevice));
 
-  // Whenever the canonical scenario changes (devices updated elsewhere), rebuild nodes
-  // so the React Flow view reflects the latest device properties.
   useEffect(() => {
     setNodes(currentScenario.devices.map(createNodeFromDevice));
-  }, [currentScenario]);
+  }, [currentScenario, createNodeFromDevice]); 
 
-  // Handlers 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
   );
 
-  // Helper to build the label JSX for a device (keeps logic consistent with
-  // initial node creation)
-  const buildLabel = (device) => (
-    
+  const buildLabel = useCallback((device) => (
     <div
       className={`
         p-2 rounded font-medium text-sm text-white text-center rounded-full
@@ -132,35 +124,43 @@ const GameSimulationEnvironment = ({ scenario }) => {
       {device.device.type === "database" && <DEVICE_TYPES.database.icon size={24} />}
       {device.device.type === "accessPoint" && <DEVICE_TYPES.accessPoint.icon size={24} />}
     </div>
-  );
+  ), []);
 
-  const handleIssueFix = (deviceId) => {
+  const handleIssueFix = useCallback((deviceId) => {
     const result = scoreService.recordIssueFix(deviceId);
     if (result) setScore(result.totalScore);
     setIssueResolved(true);
-  };
+    setActiveIssue(null);
+    
+    // Schedule next issue after fix
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
+  }, []);
 
   const handleOncomplete = () => {
     const existingGame = scoreService.getCurrentGame();
-    if(existingGame) scoreService.endGame(currentUser?.name)
-      setGameOver(true)
-  }
+    if(existingGame) scoreService.endGame(currentUser?.name);
+    
+    // FIXED: Clear timeout on game over
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    setCurrentScenario(scenario ? {...scenario} : {...officeNetworkScenario});
+    setGameOver(true);
+    setGamePaused(false);
+    setActiveIssue(null);
+    setIssueResolved(false);
+  };
 
-  const handleGamePaused = () => {
-    console.log("Game Puased")
-    setGamePaused(prev => !prev)
-    console.log(gamePaused)
-  }
+  const handleGamePaused = (isPaused) => {
+    console.log("Game Paused:", isPaused);
+    setGamePaused(isPaused);
+  };
 
-  // Apply updates coming from DeviceProperties. DeviceProperties will call
-  // onUpdateDevice(deviceId, updates). We must accept these args so updates
-  // are applied correctly and our local `nodes` state is kept in sync.
   const handleApplyDeviceChanges = (deviceId, updates) => {
     if (!deviceId || !updates) return;
-
-    // // Update the canonical scenario
-    // console.log(deviceToEdit)
-    // const deviceToUpdate = {deviceToEdit}
 
     setCurrentScenario((prevScenario) => {
       if (!prevScenario.devices || prevScenario.devices.length === 0) return prevScenario;
@@ -185,8 +185,6 @@ const GameSimulationEnvironment = ({ scenario }) => {
       };
     });
 
-  // console.log("currentScenario: ", currentScenario)
-  // Update local nodes - create completely new objects to force re-render
     setNodes((prev) =>
       prev.map((node) => {
         if (node.id !== deviceId) return node;
@@ -201,7 +199,6 @@ const GameSimulationEnvironment = ({ scenario }) => {
           },
         };
         
-        // console.log("Device for buildLabel: ",updatedDevice)
         const updatedNode = {
           ...node,
           data: {
@@ -215,18 +212,15 @@ const GameSimulationEnvironment = ({ scenario }) => {
               : 'border-green-500',
           },
         };
-        // console.log("Updated node: ", updatedNode)
-        return updatedNode
-
+        return updatedNode;
       })
     );
-    console.log("Device to edit: ",deviceToEdit)
+
     if (deviceToEdit.parameters.pingInterval <= 30 && deviceToEdit.parameters.failureProbability <= 0.5 && deviceToEdit.deviceStatus.latency <= 50) {
       handleIssueFix(deviceId);
     }
     setDeviceToEdit(null);
   };
-
 
   const edges = useMemo(() => {
     return currentScenario.devices.flatMap((device) =>
@@ -248,49 +242,42 @@ const GameSimulationEnvironment = ({ scenario }) => {
     );
   }, [currentScenario.devices, nodes]);
 
-
   const triggerRandomIssue = useCallback(() => {
-    if(gameOver || gamePaused) {
-      console.log("Game Paused or GameOver")
-      return;
+    if(gameOver || gamePaused || activeIssue) return;
+
+    const randomIndex = Math.floor(Math.random() * currentScenario.devices.length);
+    const randomDevice = currentScenario.devices[randomIndex];
+    const newLatency = Math.floor(Math.random() * 150);
+    const newPing = Math.floor(Math.random() * 100);
+    const newProbability = Math.random().toFixed(1);
+
+    const updatedDevice = {
+      ...randomDevice,
+      deviceStatus: {
+        ...randomDevice.deviceStatus,
+        online: newLatency > 100 || newPing > 30 || newProbability > 0.5 ? false : true,
+        latency: newLatency,
+      },
+      parameters: {
+        ...randomDevice.parameters,
+        pingInterval: newPing,
+        failureProbability: newProbability
+      },
     };
+    
+    setActiveIssue(updatedDevice._id);
+    setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 || newProbability > 0.5 || newPing > 30 ? "red" : "yellow"), 1000);
+    setIssueResolved(false);
+    
+    if(!updatedDevice.deviceStatus.online || updatedDevice.deviceStatus.latency > 50){
+      !updatedDevice.deviceStatus.online ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
+                          : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow');
+      playSound(!updatedDevice.deviceStatus.online  ? "red" : "yellow");
+    }
+
     setCurrentScenario(prevScenario => {
       if (!prevScenario.devices || prevScenario.devices.length === 0) return prevScenario;
-
-      // pick a random device
-      const randomIndex = Math.floor(Math.random() * prevScenario.devices.length);
-      const randomDevice = prevScenario.devices[randomIndex];
-      const newLatency = Math.floor(Math.random() * 150) // add 100–200ms latency
-      const newPing = Math.floor(Math.random() * 100)
-      const newProbability = Math.random().toFixed(1)
-
-      // modify it
-      const updatedDevice = {
-        ...randomDevice,
-        deviceStatus: {
-          ...randomDevice.deviceStatus,
-          online: newLatency > 100 || newPing > 30 || newProbability > 0.5 ? false : true,
-          latency: newLatency,
-        },
-        parameters: {
-          ...randomDevice.parameters,
-          pingInterval: newPing,
-          failureProbability: newProbability
-        },
-
-      };
-
-      // console.log(updatedDevice)
-      if(!updatedDevice.deviceStatus.online || updatedDevice.deviceStatus.latency > 50){
-        !updatedDevice.deviceStatus.online ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
-                            : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
-        playSound(!updatedDevice.deviceStatus.online  ? "red" : "yellow");
-      }
-
-      setActiveIssue(updatedDevice._id); // mark as current issue
-      setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 || newProbability > 0.5 || newPing > 30 ? "red" : "yellow"), 1000)
-      setIssueResolved(false); // reset state
-
+      
       return {
         ...prevScenario,
         devices: prevScenario.devices.map(d =>
@@ -298,39 +285,37 @@ const GameSimulationEnvironment = ({ scenario }) => {
         ),
       };
     });
-    // console.log("scenario: ", currentScenario)
+  }, [gameOver, gamePaused, playSound, activeIssue, currentScenario.devices]);
+
+  // Clear timeout when paused
+  useEffect(() => {
+    if (gamePaused && timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, [gamePaused]);
+
+  // Initial issue trigger
+  useEffect(() => {
+    if (!activeIssue && !gameOver && !gamePaused) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => triggerRandomIssue(), 10000);
+    }
+    
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [activeIssue, gameOver, gamePaused, triggerRandomIssue]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
-
-
-  useEffect(() => {
-    // Start the first issue when the game loads
-    if (!activeIssue) {
-      setTimeout(() => triggerRandomIssue(), 10000)
-    }
-  }, [activeIssue, triggerRandomIssue]);
-
-  // Randomly simulate device issues every few seconds
-  useEffect(() => {
-    if (!activeIssue) return;
-
-    const affectedDevice = currentScenario.devices.find(
-      (d) => d._id === activeIssue
-    );
-    if (!affectedDevice) return;
-
-    const { deviceStatus } = affectedDevice;
-    
-    
-    // Only mark resolved if it was previously failing AND now is back to normal
-    if (issueResolved === false && deviceStatus.online && deviceStatus.latency <= 50) {
-      
-      
-      // trigger next issue after 30s
-      setTimeout(() => triggerRandomIssue(), 30000);
-      
-    }
-  }, [currentScenario, activeIssue, issueResolved]);
-
 
   return (
     <div className="flex flex-col w-full">
@@ -353,17 +338,20 @@ const GameSimulationEnvironment = ({ scenario }) => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center  border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
-            <p className='text-xl dark:text-network-light font-bold'>{!gameOver ? `Score: ${score}` : ""}</p>
-            
-            <CountdownTimer initialTime={currentScenario.timeLimit} 
-                            isRunning={!gameOver && !gamePaused} 
-                            scenario={scenario || officeNetworkScenario} 
-                            onComplete={handleOncomplete} 
-                            handleGamePaused={handleGamePaused}
-                            className="mb-2 dark:text-network-light"  
-            />
+      <div className="flex justify-between items-center border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
+        <p className='text-xl dark:text-network-light font-bold'>{!gameOver ? `Score: ${score}` : ""}</p>
+        
+        <CountdownTimer 
+          initialTime={currentScenario.timeLimit} 
+          isRunning={true} 
+          scenario={scenario || officeNetworkScenario} 
+          onComplete={handleOncomplete} 
+          handleGamePaused={handleGamePaused}
+          gameOver={gameOver}
+          className="mb-2 dark:text-network-light"
+        />
       </div>
+
       <Modal isOpen={deviceToEdit !== null}
         title={"Adjust Device Parameters"}
         onClose={() => setDeviceToEdit(null)}
@@ -382,12 +370,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
             <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
               Device
             </label>
-            <div
-              className={"px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded"}
-            >
+            <div className={"px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded"}>
               {deviceToEdit.device.name}
             </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
               Ping Interval (s)
@@ -447,12 +434,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
             <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
               Status
             </label>
-            <div
-              className={`px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                          rounded  ${
-                            deviceToEdit.deviceStatus.online  ? 'text-network-success' : 'text-network-error'
-                          }`}
-            >
+            <div className={`px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
+                          rounded ${deviceToEdit.deviceStatus.online  ? 'text-network-success' : 'text-network-error'}`}>
               {deviceToEdit.deviceStatus.online ? 'Online' : 'Offline'}
             </div>
           </div>
@@ -467,23 +450,26 @@ const GameSimulationEnvironment = ({ scenario }) => {
           </Button>
         </Form>}
       </Modal>
-      {!gameOver ? <div className="h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
-        <ReactFlow
-          key={nodes.length + score}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          nodeTypes={nodeTypes}
-          nodesDraggable
-          fitView
 
-        >
-          <Background />
-        </ReactFlow>
-      </div> : <div className="flex justify-center items-center h-[600px]  border-t-0 w-full border border-gray-600  rounded-b bg-network-light dark:bg-network-surface">
-              <p className='text-7xl dark:text-network-light font-bold'>Score: {score}</p>
-        </div>}
-      
+      {!gameOver ? (
+        <div className="h-[600px] border-t-0 w-full border border-gray-600 rounded-b bg-network-light dark:bg-network-surface">
+          <ReactFlow
+            key={nodes.length + score}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            nodeTypes={nodeTypes}
+            nodesDraggable
+            fitView
+          >
+            <Background />
+          </ReactFlow>
+        </div>
+      ) : (
+        <div className="flex justify-center items-center h-[600px] border-t-0 w-full border border-gray-600 rounded-b bg-network-light dark:bg-network-surface">
+          <p className='text-7xl dark:text-network-light font-bold'>Score: {score}</p>
+        </div>
+      )}
     </div>
   );
 };

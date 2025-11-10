@@ -5,22 +5,21 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { scoreService } from '../services/score.service';
 
-
 const CountdownTimer = ({
-  initialTime = 300, // default 5 minutes
+  initialTime = 300,
   isRunning = true,
   onComplete = () => {},
   className = "",
   scenario,
+  gameOver,
   handleGamePaused
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
   const intervalRef = useRef(null);
   const { currentUser } = useSelector((state) => state.users);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  // Format seconds to mm:ss
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -33,7 +32,7 @@ const CountdownTimer = ({
 
   // Handle countdown logic
   useEffect(() => {
-    if (!active) {
+    if (!active || gameOver) {
       clearInterval(intervalRef.current);
       return;
     }
@@ -50,38 +49,53 @@ const CountdownTimer = ({
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [active, onComplete]);
+  }, [active, onComplete, gameOver]);
 
-  const handlePauseResume = () => {setActive((prev) => !prev); handleGamePaused();};
+  const handlePauseResume = () => {
+    setActive((prev) => {
+      const newActive = !prev;
+      // Send the PAUSED state (inverse of active) to parent
+      handleGamePaused(!newActive);
+      return newActive;
+    });
+  };
+
   const handleReset = () => {
     if (!currentUser || !scenario) return;
     
-    // Only initialize if no current game
     const existingGame = scoreService.getCurrentGame();
     if (existingGame) scoreService.clearGame();
+    
     scoreService.initializeGame(
       scenario?.id || scenario?._id,
       currentUser?._id || currentUser?.id,
       scenario.name
     );
-    navigate(0)
+    
+    navigate(0);
   };
 
   return (
-    <div
-      className={`flex items-center flex-nowrap space-x-4 ${className}`}
-    >
-      <div className="text-xl font-semibold ">
+    <div className={`flex items-center flex-nowrap space-x-4 ${className}`}>
+      <div className="text-xl font-semibold">
         {formatTime(timeLeft)}
       </div>
 
-      <Button className=" hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" onClick={handlePauseResume}>
+      <Button 
+        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
+        onClick={handlePauseResume}
+        disabled={gameOver}
+      >
         {active ? <FaPause size={14} /> : <FaPlay size={14} />}
         {active ? 'Pause' : 'Play'}
       </Button>
-      <Button className=" hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" onClick={handleReset}>
+
+      <Button 
+        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
+        onClick={handleReset}
+      >
         <FaRedo size={14} />
-        {active ? "Reset" : "Replay"}
+        {gameOver ? "Replay" : "Reset"}
       </Button>
     </div>
   );
