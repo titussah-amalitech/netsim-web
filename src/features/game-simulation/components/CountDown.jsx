@@ -3,21 +3,23 @@ import { Button } from "../../../components";
 import { FaPause, FaPlay, FaRedo } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { scoreService } from '../services/score.service';
 
 const CountdownTimer = ({
-  initialTime = 300, // default 5 minutes
+  initialTime = 300,
   isRunning = true,
   onComplete = () => {},
   className = "",
-  endGame
+  scenario,
+  gameOver,
+  handleGamePaused
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
   const intervalRef = useRef(null);
   const { currentUser } = useSelector((state) => state.users);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  // Format seconds to mm:ss
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -30,7 +32,7 @@ const CountdownTimer = ({
 
   // Handle countdown logic
   useEffect(() => {
-    if (!active) {
+    if (!active || gameOver) {
       clearInterval(intervalRef.current);
       return;
     }
@@ -47,30 +49,54 @@ const CountdownTimer = ({
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [active, onComplete]);
+  }, [active, onComplete, gameOver]);
 
-  const handlePauseResume = () => setActive((prev) => !prev);
+  const handlePauseResume = () => {
+    setActive((prev) => {
+      const newActive = !prev;
+      // Send the PAUSED state (inverse of active) to parent
+      handleGamePaused(!newActive);
+      return newActive;
+    });
+  };
+
   const handleReset = () => {
-    endGame(currentUser?.name)
-    console.log(currentUser.name)
-    // navigate(0)
+    if (!currentUser || !scenario) return;
+    
+    const existingGame = scoreService.getCurrentGame();
+    if (existingGame) scoreService.clearGame();
+    console.log(existingGame)
+    
+    scoreService.initializeGame(
+      scenario?.id || scenario?._id,
+      currentUser?._id || currentUser?.id,
+      scenario.name
+    );
+
+    if (gameOver) navigate(0)
   };
 
   return (
-    <div
-      className={`flex items-center flex-nowrap space-x-4 ${className}`}
-    >
-      <div className="text-xl font-semibold ">
+    <div className={`flex items-center flex-nowrap space-x-4 ${className}`}>
+      <div className="text-xl font-semibold">
         {formatTime(timeLeft)}
       </div>
 
-      <Button className=" hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" onClick={handlePauseResume}>
+      <Button 
+        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
+        onClick={handlePauseResume}
+        disabled={gameOver}
+      >
         {active ? <FaPause size={14} /> : <FaPlay size={14} />}
         {active ? 'Pause' : 'Play'}
       </Button>
-      <Button className=" hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" onClick={handleReset}>
+
+      <Button 
+        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
+        onClick={handleReset}
+      >
         <FaRedo size={14} />
-        Reset
+        {gameOver ? "Replay" : "Reset"}
       </Button>
     </div>
   );
