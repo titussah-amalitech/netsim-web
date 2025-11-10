@@ -36,3 +36,51 @@ html, body {
   font-variant-numeric: slashed-zero;
   text-shadow: 0 0 1px rgba(21, 93, 252, 0.1);
 }
+
+/* Custom Scrollbar */
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-network-surface-light);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-network-border);
+  border-radius: 8px;
+  border: 2px solid var(--color-network-surface-light);
+  transition: background-color 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-network-gray-light);
+}
+
+/* Dark Mode */
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-network-surface);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: var(--color-network-gray-light);
+  border: 2px solid var(--color-network-surface);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-network-border);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-network-border) var(--color-network-surface-light);
+}
+
+.dark * {
+  scrollbar-color: var(--color-network-gray-light) var(--color-network-surface);
+}

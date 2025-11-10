@@ -61,7 +61,6 @@ export const GameHub = () => {
          ) : (
             <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full space-y-4">
                <GameSimulationEnvironment scenario={selectedScenario}/>
-               <DeviceLogger />
             </div>
          )}
       </div>

@@ -1,63 +1,26 @@
-import { useEffect, useMemo, useState } from 'react'
+import {  useMemo, useState } from 'react'
 import { Dropdown } from '../../../components/common/Dropdown'
 import { DeviceLogCard } from '../components/DeviceLogCard'
 
-const DeviceLogger = () => {
-  const now = new Date()
-
-  const deviceStatus = [
-    {
-      device: 'Database server',
-      message: 'Database Server: High latency: 38ms, Packet loss: 4%',
-      time: now.toLocaleTimeString(),
-      indication: 'High'
-    },
-    {
-      device: 'Workstation 1',
-      message: 'Workstation 1: Performance degraded',
-      time: now.toLocaleTimeString(),
-      indication: 'Medium'
-    },
-    {
-      device: 'Web Server',
-      message: 'Device Workstation 2 status changed from critical to online',
-      time: now.toLocaleTimeString(),
-      indication: 'Low'
-    }
-  ]
-
-  const [newDeviceStatus, setNewDeviceStatus] = useState([])
+const DeviceLogger = ({ logs = [] }) => {
   const severityArray = ["All Severity", "High", "Medium", "Low"]
   const [selectedSeverity, setSelectedSeverity] = useState(severityArray[0])
-  
- 
-  const refreshStatus = () => {
-    const randomStatus = Math.floor(Math.random() * 3)
-    const device = deviceStatus[randomStatus]
-    setNewDeviceStatus(prev => [device, ...prev])
-  }
+  const [query, setQuery] = useState('')
 
-  useEffect(() => {
-    const intervalId = setInterval(refreshStatus, 1000 * 30)
-    return () => clearInterval(intervalId)
-  }, [])
-
-  const filteredBySeverity = newDeviceStatus.filter(
-    device => device.indication === selectedSeverity
+  const filteredBySeverity = logs.filter(
+    log => selectedSeverity === "All Severity" || log.indication === selectedSeverity
   )
 
-  const [query, setQuery] = useState('')
-  const logs = selectedSeverity === "All Severity" ? newDeviceStatus : filteredBySeverity
   const filteredLogs = useMemo(() => {
-    if (!query) return logs
+    if (!query) return filteredBySeverity
     const lowerQuery = query.toLowerCase()
-    return logs.filter(
+    return filteredBySeverity.filter(
       log =>
         log.device.toLowerCase().includes(lowerQuery) ||
         log.message.toLowerCase().includes(lowerQuery) ||
         log.indication.toLowerCase().includes(lowerQuery)
     )
-  }, [query, logs])
+  }, [query, filteredBySeverity])
 
   const renderLogs = () => {
     if (!filteredLogs.length) {
@@ -70,34 +33,29 @@ const DeviceLogger = () => {
       )
     }
 
-    return filteredLogs.map((device, index) => (
+    return filteredLogs.map((log, index) => (
       <DeviceLogCard
-        device={device.device}
-        message={device.message}
-        indication={device.indication}
-        time={now.toLocaleTimeString()}
-        date={now.toLocaleDateString()}
-        key={index}
+        key={`${log.time}-${index}`}
+        device={log.device}
+        message={log.message}
+        indication={log.indication}
+        time={log.time}
+        date={log.date}
       />
     ))
   }
 
   return (
-    <div className="rounded-lg bg-network-lighter dark:bg-network-surface border border-network-border-light dark:border-network-border shadow-sm p-6">
+    <div className="h-full rounded-lg bg-network-lighter dark:bg-network-surface border border-network-border-light dark:border-network-border shadow-sm p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <p className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">
-          System Logs
-        </p>
-        <div className="flex items-center gap-4">
-          <p className="text-lg text-network-text-dark dark:text-gray-400">
-            {logs.length} entries
-          </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4 w-full">
           <Dropdown
             options={severityArray}
             selected={selectedSeverity}
             onChange={setSelectedSeverity}
-            className="border border-network-border-light dark:border-network-border rounded p-2 text-sm"
+            labelStyle='py'
+            className="w-full border border-network-border-light dark:border-network-border rounded p-2 text-sm"
           />
         </div>
       </div>
@@ -114,7 +72,7 @@ const DeviceLogger = () => {
       </div>
 
       {/* Logs */}
-      <div className="overflow-auto max-h-[60vh]">
+      <div className="overflow-auto max-h-full md:max-h-[50vh] custom-scrollbar">
         {renderLogs()}
       </div>
 
