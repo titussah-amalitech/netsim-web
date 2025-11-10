@@ -11,7 +11,7 @@ import 'reactflow/dist/style.css';
 import CountdownTimer from './CountDown';
 import { DeviceNode } from '../../../components/common/DeviceNode';
 import { officeNetworkScenario } from '../constants';
-import { Modal } from '../../../components';
+import { Button, Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import { showRealTimeAlert } from './RealTimeAlerts';
 import { scoreService } from '../services/score.service';
@@ -20,6 +20,7 @@ import { useAlertSound } from '../hooks/useAlertSound';
 import { DeviceParamaters } from './DeviceParamaters';
 import { GameStats } from './GameStats';
 import DeviceLogger from './DeviceLogger';
+import Form from '../../../components/common/Form';
 
 const nodeTypes = { deviceNode: DeviceNode };
 
@@ -29,7 +30,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [issueResolved, setIssueResolved] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
-  const timeoutRef = useRef(null); // FIXED: Use ref instead of state
+  const timeoutRef = useRef(null); // Use ref instead of state
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
   const { currentUser } = useSelector((state) => state.users);
@@ -308,8 +309,19 @@ const GameSimulationEnvironment = ({ scenario }) => {
     setIssueResolved(false);
     
     if(!updatedDevice.deviceStatus.online || updatedDevice.deviceStatus.latency > 50){
-      !updatedDevice.deviceStatus.online ? showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
-                          : showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow');
+      const severity = !updatedDevice.deviceStatus.online ? 'red' : 'yellow';
+      const indication = updatedDevice.deviceStatus.latency > 100? 'High' : 'Medium';
+
+      if(!updatedDevice.deviceStatus.online){
+        showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
+        addLogEntry(
+          updatedDevice,
+          `${updatedDevice.device.name}: ${updatedDevice.deviceStatus.latency ? 'Offline' : `High latency: ${updatedDevice.deviceStatus.latency}ms`}`,
+          indication
+        );
+      }else {
+        showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
+      };
       playSound(!updatedDevice.deviceStatus.online  ? "red" : "yellow");
     }
 
