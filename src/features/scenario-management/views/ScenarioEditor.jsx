@@ -82,14 +82,12 @@ export const ScenarioEditor = () => {
 
       if (connectionMode.mode === 'add') {
          addConnection(connectionMode.sourceDevice._id, targetDevice._id)
-         showAlert("success", "Connection Added", `Connected ${connectionMode.sourceDevice.device.name} to ${targetDevice.device.name}`)
       } else {
          removeConnection(connectionMode.sourceDevice._id, targetDevice._id)
-         showAlert("info", "Connection Removed", `Disconnected ${connectionMode.sourceDevice.device.name} from ${targetDevice.device.name}`)
       }
 
       setConnectionMode({ active: false, sourceDevice: null, mode: 'add' })
-   }, [connectionMode.sourceDevice, connectionMode.mode, addConnection, showAlert, removeConnection])
+   }, [connectionMode.sourceDevice, connectionMode.mode, addConnection, removeConnection])
 
    const toggleConnectionMode = useCallback((mode) => {
       if (connectionMode.active && connectionMode.mode === mode) {
