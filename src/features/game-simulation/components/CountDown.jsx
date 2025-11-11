@@ -8,11 +8,11 @@ import { scoreService } from '../services/score.service';
 const CountdownTimer = ({
   initialTime = 300,
   isRunning = true,
-  onComplete = () => {},
+  onComplete = () => { },
   className = "",
   scenario,
   gameOver,
-  handleGamePaused
+  handleGamePaused,
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [active, setActive] = useState(isRunning);
@@ -62,11 +62,10 @@ const CountdownTimer = ({
 
   const handleReset = () => {
     if (!currentUser || !scenario) return;
-    
+
     const existingGame = scoreService.getCurrentGame();
     if (existingGame) scoreService.clearGame();
-    console.log(existingGame)
-    
+
     scoreService.initializeGame(
       scenario?.id || scenario?._id,
       currentUser?._id || currentUser?.id,
@@ -82,17 +81,18 @@ const CountdownTimer = ({
         {formatTime(timeLeft)}
       </div>
 
-      <Button 
-        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
-        onClick={handlePauseResume}
-        disabled={gameOver}
-      >
-        {active ? <FaPause size={14} /> : <FaPlay size={14} />}
-        {active ? 'Pause' : 'Play'}
-      </Button>
+      {!gameOver && (
+        <Button
+          className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg"
+          onClick={handlePauseResume}
+        >
+          {active ? <FaPause size={14} /> : <FaPlay size={14} />}
+          {active ? 'Pause' : 'Play'}
+        </Button>
+      )}
 
-      <Button 
-        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg" 
+      <Button
+        className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg"
         onClick={handleReset}
       >
         <FaRedo size={14} />

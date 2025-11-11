@@ -15,8 +15,6 @@ export const Leaderboard = () => {
    const [alert, setAlert] = useState(null);
 
    useEffect(() => {
-      // TODO: REMOVE THIS LATER
-      // dispatch(clearLeaderboard()).unwrap()
       dispatch(fetchScores());
    }, [dispatch]);
 
