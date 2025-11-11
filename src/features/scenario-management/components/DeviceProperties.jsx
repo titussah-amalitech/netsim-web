@@ -9,6 +9,7 @@ export const DeviceProperties = ({
    onUpdateDevice,
    onDeleteDevice,
    isEditingMode = false,
+   allDevices = [],
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
    // Form state for editing device properties
@@ -69,20 +70,6 @@ export const DeviceProperties = ({
       });
    };
 
-   // Helper function to cancel editing and revert changes
-   const handleCancel = () => {
-      setIsEditing(false);
-      setFormData({
-         name: device.device?.name || device.name || '',
-         type: device.device?.type || device.type || 'router',
-         pingInterval: device.parameters?.pingInterval || 30,
-         latencyThreshold: device.parameters?.latencyThreshold || 100,
-         latencyThresholdMin: device.parameters?.latencyThresholdMin || 80,
-         latencyThresholdMax: device.parameters?.latencyThresholdMax || 120,
-         failureProbability: device.parameters?.failureProbability || 0,
-         problemType: device.parameters?.problemType || 'high_latency'
-      });
-   };
 
    const deviceType = device.device?.type || device.type;
    const deviceConfig = DEVICE_TYPES[deviceType];
@@ -366,14 +353,6 @@ export const DeviceProperties = ({
                   >
                      Save
                   </Button>
-                  {!isSimulation && <button
-                     variant=""
-                     onClick={handleCancel}
-                     className="px-3 py-2 bg-network-gray-light hover:bg-network-gray-light/70 text-white rounded-lg transition-colors cursor-pointer"
-                     title='Cancel editing device properties'
-                  >
-                     Cancel
-                  </button>}
                </div>
             ) : (
                <>

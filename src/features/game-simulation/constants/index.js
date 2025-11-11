@@ -5,12 +5,12 @@ export const officeNetworkScenario = {
   _id: "scenario_001",
   name: "Office Network",
   difficulty: "easy",
-  timeLimit: 50,
+  timeLimit: 180,
   devices: [
     {
       _id: "temp_1759761987795",
       device: { name: "Router_1", type: "router" },
-      position: { x: 680, y: 280 },
+      position: { x: 20, y: 450 },
       parameters: {
         pingInterval: 30,
         latencyThreshold: 50,
@@ -27,7 +27,7 @@ export const officeNetworkScenario = {
     {
       _id: "temp_1759761997997",
       device: { name: "Server_1", type: "server" },
-      position: { x: 240, y: 360 },
+      position: { x: 580, y: 450 },
       parameters: {
         pingInterval: 30,
         latencyThreshold: 50,
@@ -39,12 +39,12 @@ export const officeNetworkScenario = {
         latency: 0,
         lastChecked: "2025-10-06T14:46:37.997Z",
       },
-      connections: ["temp_1759762003616"], // Connected to Switch_1
+      connections: [], // Connected to Switch_1
     },
     {
       _id: "temp_1759762003616",
       device: { name: "Switch_1", type: "switch" },
-      position: { x: 560, y: 400 },
+      position: { x: 320, y: 360 },
       parameters: {
         pingInterval: 30,
         latencyThreshold: 50,
@@ -56,7 +56,7 @@ export const officeNetworkScenario = {
         latency: 0,
         lastChecked: "2025-10-06T14:46:43.616Z",
       },
-      connections: ["temp_1759761987795", "temp_1759761997997"], // Router_1, Server_1
+      connections: ["temp_1759761997997"], // Router_1, Server_1
     },
   ],
   metadata: {
