@@ -1,8 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { CiWarning } from "react-icons/ci";
-import { CgDanger } from "react-icons/cg";
-import { SiTicktick } from "react-icons/si";
-import { GoStack } from "react-icons/go";
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import ReactFlow, {
   Background,
   applyNodeChanges,
@@ -11,7 +7,7 @@ import 'reactflow/dist/style.css';
 import CountdownTimer from './CountDown';
 import { DeviceNode } from '../../../components/common/DeviceNode';
 import { officeNetworkScenario } from '../constants';
-import { Button, Modal } from '../../../components';
+import { Modal } from '../../../components';
 import { DEVICE_TYPES } from '../../../constants';
 import { showRealTimeAlert } from './RealTimeAlerts';
 import { scoreService } from '../services/score.service';
@@ -19,27 +15,32 @@ import { useSelector } from 'react-redux';
 import { useAlertSound } from '../hooks/useAlertSound';
 import { DeviceParamaters } from './DeviceParamaters';
 import { GameStats } from './GameStats';
+import { GameOverScreen } from './GameOverScreen';
 import DeviceLogger from './DeviceLogger';
-import Form from '../../../components/common/Form';
+import { AnimatedScore } from './AnimatedScore';
+import { GameCountdownSplash } from './GameCountdownSplash';
 
 const nodeTypes = { deviceNode: DeviceNode };
 
 const GameSimulationEnvironment = ({ scenario }) => {
   const [deviceToEdit, setDeviceToEdit] = useState(null);
   const [activeIssue, setActiveIssue] = useState(null);
-  const [issueResolved, setIssueResolved] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
   const timeoutRef = useRef(null); // Use ref instead of state
   const [score, setScore] = useState(0);
-  const [currentScenario, setCurrentScenario] = useState(scenario ? {...scenario} : {...officeNetworkScenario});
+  const [currentScenario, setCurrentScenario] = useState(scenario ? { ...scenario } : { ...officeNetworkScenario });
   const { currentUser } = useSelector((state) => state.users);
   const { playSound } = useAlertSound(false);
   const [showLogs, setShowLogs] = useState(false);
   const [systemLogs, setSystemLogs] = useState([]);
+  const [currentGameSession, setCurrentGameSession] = useState()
 
-  // Track which devices have already been alerted
-  const alertedDevices = useRef(new Set());
+    const [showCountdown, setShowCountdown] = useState(true);
+
+  const handleCountdownComplete = () => {
+    setShowCountdown(false);
+  };
 
   // Helper function to add a log entry (with duplication guard)
   const addLogEntry = useCallback((device, message, indication) => {
@@ -86,13 +87,12 @@ const GameSimulationEnvironment = ({ scenario }) => {
       label: (
         <div
           className={`
-            p-2 rounded font-medium text-sm text-white text-center rounded-full
-            ${
-              !device.deviceStatus.online 
+            p-2 rounded-full font-medium text-sm text-white text-center
+            ${!device.deviceStatus?.online
               ? "bg-red-500"
-              : device.deviceStatus.latency > 50 
-              ? "bg-yellow-400 text-black"
-              : "bg-green-500"
+              : device.deviceStatus.latency > 50
+                ? "bg-yellow-400 text-black"
+                : "bg-green-500"
             }
           `}
           onClick={() => setDeviceToEdit(device)}
@@ -108,11 +108,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
           {device.device.type === 'accessPoint' && <DEVICE_TYPES.accessPoint.icon size={24} />}
         </div>
       ),
-      color: !device.deviceStatus.online 
-              ? "border-red-500"
-              : device.deviceStatus.latency > 50
-              ? "border-yellow-400 text-black"
-              : "border-green-500",
+      color: !device.deviceStatus?.online
+        ? "border-red-500"
+        : device.deviceStatus.latency > 50
+          ? "border-yellow-400 text-black"
+          : "border-green-500",
       device,
     },
     sourcePosition: 'right',
@@ -124,7 +124,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
   useEffect(() => {
     setNodes(currentScenario.devices.map(createNodeFromDevice));
-  }, [currentScenario, createNodeFromDevice]); 
+  }, [currentScenario, createNodeFromDevice]);
 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -134,11 +134,10 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const buildLabel = useCallback((device) => (
     <div
       className={`
-        p-2 rounded font-medium text-sm text-white text-center rounded-full
-        ${
-          !device.deviceStatus.online
-            ? "bg-red-500"
-            : device.deviceStatus.latency > 50 
+        p-2 rounded font-medium text-sm text-white text-center
+        ${!device.deviceStatus?.online
+          ? "bg-red-500"
+          : device.deviceStatus.latency > 50
             ? "bg-yellow-400 text-black"
             : "bg-green-500"
         }
@@ -160,9 +159,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const handleIssueFix = useCallback((deviceId) => {
     const result = scoreService.recordIssueFix(deviceId);
     if (result) setScore(result.totalScore);
-    setIssueResolved(true);
     setActiveIssue(null);
-    
+
     // Schedule next issue after fix
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
@@ -170,19 +168,20 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
   const handleOncomplete = () => {
     const existingGame = scoreService.getCurrentGame();
-    if(existingGame) scoreService.endGame(currentUser?.name);
-    
+    if (existingGame) {
+      scoreService.endGame(currentUser?.name);
+      setCurrentGameSession(existingGame)
+    }
     // FIXED: Clear timeout on game over
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
-    setCurrentScenario(scenario ? {...scenario} : {...officeNetworkScenario});
+
+    setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario });
     setGameOver(true);
     setGamePaused(false);
     setActiveIssue(null);
-    setIssueResolved(false);
   };
 
   const handleGamePaused = (isPaused) => {
@@ -199,7 +198,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
       return {
         ...prevScenario,
         devices: prevScenario.devices.map(d =>
-          d._id === deviceId? {
+          d._id === deviceId ? {
             ...d,
             parameters: {
               ...d.parameters,
@@ -219,28 +218,29 @@ const GameSimulationEnvironment = ({ scenario }) => {
     setNodes((prev) =>
       prev.map((node) => {
         if (node.id !== deviceId) return node;
-        
+
         const updatedDevice = {
           ...node.data.device,
           ...updates,
           parameters: { ...node.data.device.parameters, ...(updates.parameters || {}) },
-          deviceStatus: { ...node.data.device.deviceStatus, 
+          deviceStatus: {
+            ...node.data.device.deviceStatus,
             online: updates.parameters.pingInterval > 30 || updates.parameters.failureProbability > 50 || updates.deviceStatus.latency > 100 ? false : true,
             latency: updates.deviceStatus.latency
           },
         };
-        
+
         const updatedNode = {
           ...node,
           data: {
             ...node.data,
             device: updatedDevice,
             label: buildLabel(updatedDevice),
-            color: !updatedDevice.deviceStatus.online 
+            color: !updatedDevice.deviceStatus?.online
               ? 'border-red-500'
               : updatedDevice.deviceStatus.latency > 50
-              ? 'border-yellow-400 text-black'
-              : 'border-green-500',
+                ? 'border-yellow-400 text-black'
+                : 'border-green-500',
           },
         };
         return updatedNode;
@@ -270,11 +270,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
         animated: true,
         style: {
           stroke:
-            !nodes.find((n) => n.id === device._id)?.data.device.deviceStatus.online
+            !nodes.find((n) => n.id === device._id)?.data.device.deviceStatus?.online
               ? "#ef4444"
               : nodes.find((n) => n.id === device._id)?.data.device.deviceStatus.latency > 50
-              ? "#eab308"
-              : "#16a34a",
+                ? "#eab308"
+                : "#16a34a",
           strokeWidth: 5,
         },
       })))
@@ -282,7 +282,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   }, [currentScenario.devices, nodes]);
 
   const triggerRandomIssue = useCallback(() => {
-    if(gameOver || gamePaused || activeIssue) return;
+    if (gameOver || gamePaused || activeIssue) return;
 
     const randomIndex = Math.floor(Math.random() * currentScenario.devices.length);
     const randomDevice = currentScenario.devices[randomIndex];
@@ -303,31 +303,30 @@ const GameSimulationEnvironment = ({ scenario }) => {
         failureProbability: newProbability
       },
     };
-    
+
     setActiveIssue(updatedDevice._id);
     setTimeout(() => scoreService.recordIssueStart(randomDevice?._id || randomDevice?.id, newLatency > 100 || newProbability > 0.5 || newPing > 30 ? "red" : "yellow"), 1000);
-    setIssueResolved(false);
-    
-    if(!updatedDevice.deviceStatus.online || updatedDevice.deviceStatus.latency > 50){
-      const severity = !updatedDevice.deviceStatus.online ? 'red' : 'yellow';
-      const indication = updatedDevice.deviceStatus.latency > 100? 'High' : 'Medium';
 
-      if(!updatedDevice.deviceStatus.online){
+    if (!updatedDevice.deviceStatus?.online || updatedDevice.deviceStatus.latency > 50) {
+      // const severity = !updatedDevice.deviceStatus?.online ? 'red' : 'yellow';
+      const indication = updatedDevice.deviceStatus.latency > 100 ? 'High' : 'Medium';
+
+      if (!updatedDevice.deviceStatus?.online) {
         showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
         addLogEntry(
           updatedDevice,
           `${updatedDevice.device.name}: ${updatedDevice.deviceStatus.latency ? 'Offline' : `High latency: ${updatedDevice.deviceStatus.latency}ms`}`,
           indication
         );
-      }else {
+      } else {
         showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
       };
-      playSound(!updatedDevice.deviceStatus.online  ? "red" : "yellow");
+      playSound(!updatedDevice.deviceStatus?.online ? "red" : "yellow");
     }
 
     setCurrentScenario(prevScenario => {
       if (!prevScenario.devices || prevScenario.devices.length === 0) return prevScenario;
-      
+
       return {
         ...prevScenario,
         devices: prevScenario.devices.map(d =>
@@ -351,7 +350,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => triggerRandomIssue(), 10000);
     }
-    
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -367,35 +366,22 @@ const GameSimulationEnvironment = ({ scenario }) => {
     };
   }, []);
 
+    if (showCountdown) {
+    return <GameCountdownSplash onComplete={handleCountdownComplete} />;
+  }
+
   return (
     <div className="flex flex-col w-full">
-      <div className="flex flex-wrap gap-2 ms-auto">
-        <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
-          <CgDanger size={24} className="text-red-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Offline: {nodes.filter(node =>  !node.data.device.deviceStatus.online ).length}</p>
-        </div>
-        <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
-          <CiWarning size={24} className="text-yellow-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">High Latency: {nodes.filter(node => node.data.device.deviceStatus.online && node.data.device.deviceStatus.latency > 50).length}</p>
-        </div>
-        <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
-          <SiTicktick size={24} className="text-green-500 mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">Online: {nodes.filter(node => node.data.device.deviceStatus.online).length}</p>
-        </div>
-        <div className="flex dark:bg-network-surface border dark:border-gray-600 p-4 rounded items-center">
-          <GoStack size={24} className="text-network-primary mr-2" />
-          <p className="dark:text-network-light font-bold text-nowrap">All: {nodes.length}</p>
-        </div>
-      </div>
+      <GameStats nodes={nodes} />
 
-      <div className="flex justify-between items-center border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2 border-gray-600">
-        <p className='text-xl dark:text-network-light font-bold'>{!gameOver ? `Score: ${score}` : ""}</p>
-        
-        <CountdownTimer 
-          initialTime={currentScenario.timeLimit} 
-          isRunning={true} 
-          scenario={scenario || officeNetworkScenario} 
-          onComplete={handleOncomplete} 
+      <div className="flex justify-between items-center border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2">
+        <AnimatedScore score={score} />
+
+        <CountdownTimer
+          initialTime={currentScenario.timeLimit}
+          isRunning={true}
+          scenario={scenario || officeNetworkScenario}
+          onComplete={handleOncomplete}
           handleGamePaused={handleGamePaused}
           gameOver={gameOver}
           className="mb-2 dark:text-network-light"
@@ -406,99 +392,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
         title={"Adjust Device Parameters"}
         onClose={() => setDeviceToEdit(null)}
       >
-        {deviceToEdit && <Form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleApplyDeviceChanges(deviceToEdit._id, {
-              parameters: deviceToEdit.parameters,
-              deviceStatus: deviceToEdit.deviceStatus,
-            }); 
-          }}
-          className="space-y-3 mt-2"
-        >
-          <div>
-            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
-              Device
-            </label>
-            <div className={"px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded"}>
-              {deviceToEdit.device.name}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
-              Ping Interval (s)
-            </label>
-            <input
-              type="number"
-              value={deviceToEdit.parameters.pingInterval}
-              onChange={(e) => setDeviceToEdit(prev => ({
-                ...prev,
-                parameters: { ...(prev.parameters || {}), pingInterval: Number(e.target.value) }
-              }))}
-              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                        rounded text-network-text-darker dark:text-network-text-light focus:outline-none
-                        focus:ring-2 focus:ring-blue-400"
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
-              Latency (ms)
-            </label>
-            <input
-              type="number"
-              value={deviceToEdit.deviceStatus.latency}
-              onChange={(e) => setDeviceToEdit(prev => ({
-                ...prev,
-                deviceStatus: { ...(prev.deviceStatus || {}), latency: Number(e.target.value) }
-              }))}
-              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                        rounded text-network-text-darker dark:text-network-text-light focus:outline-none
-                        focus:ring-2 focus:ring-blue-400"
-              min="0"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
-              Failure Probability (%)
-            </label>
-            <input
-              type="number"
-              value={(deviceToEdit.parameters.failureProbability || 0) * 100}
-              onChange={(e) => setDeviceToEdit(prev => ({
-                ...prev,
-                parameters: { ...(prev.parameters || {}), failureProbability: Number(e.target.value) / 100 }
-              }))}
-              className="w-full px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                        rounded text-network-text-darker dark:text-network-text-light focus:outline-none
-                        focus:ring-2 focus:ring-blue-400"
-              min="0"
-              max="100"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-network-text-darker dark:text-network-text-light mb-1">
-              Status
-            </label>
-            <div className={`px-3 py-2 border border-network-border-light dark:border-0 dark:bg-network-gray-light
-                          rounded ${deviceToEdit.deviceStatus.online  ? 'text-network-success' : 'text-network-error'}`}>
-              {deviceToEdit.deviceStatus.online ? 'Online' : 'Offline'}
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            variant=""
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-network-success
-                      hover:bg-network-success/80 text-white rounded-lg transition-colors cursor-pointer"
-          >
-            Apply
-          </Button>
-        </Form>}
+        <DeviceParamaters
+          deviceToEdit={deviceToEdit}
+          setDeviceToEdit={setDeviceToEdit}
+          applyChanges={handleApplyDeviceChanges}
+        />
       </Modal>
 
       {!gameOver ? (
@@ -527,17 +425,20 @@ const GameSimulationEnvironment = ({ scenario }) => {
               </button>
             </div>
             <div className="flex-1 overflow-hidden p-3 sm:p-4">
-              <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600">
+              <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600 h-full">
                 <p className="italic mb-5">Monitoring network activity...</p>
-                <DeviceLogger logs={systemLogs} />
+                {systemLogs.length ? <DeviceLogger logs={systemLogs} /> : <span className="flex justify-center items-center dark:text-red-200 font-bold h-full my-auto">
+                  No logs yet
+                </span>}
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="flex justify-center items-center h-[600px] border-t-0 w-full border border-gray-600 rounded-b bg-network-light dark:bg-network-surface">
-          <p className='text-7xl dark:text-network-light font-bold'>Score: {score}</p>
-        </div>
+        <GameOverScreen
+          score={score}
+          gameData={currentGameSession}
+        />
       )}
     </div>
   );

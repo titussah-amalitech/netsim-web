@@ -9,16 +9,6 @@ import { GlobalAuthWrapper } from './components/GlobalAuthWrapper'
 import { Toaster } from 'react-hot-toast'
 
 function App() {
-  // TODO: REMOVE THIS LATER
-  // For testing only
-  // useEffect(() => {
-  //   let hasSeeded = false;
-  //   if (!hasSeeded) {
-  //     seedDummyData();
-  //     hasSeeded = true;
-  //   }
-  // }, []);
-
   return (
     <BrowserRouter>
       <GlobalAuthWrapper>

@@ -9,7 +9,7 @@ export const DeviceProperties = ({
    onUpdateDevice,
    onDeleteDevice,
    isEditingMode = false,
-   allDevices = [],
+   allDevices = [], // Pass all devices to show connection info
 }) => {
    const [isEditing, setIsEditing] = useState(isEditingMode);
    // Form state for editing device properties
@@ -69,7 +69,6 @@ export const DeviceProperties = ({
          problemType: device.parameters?.problemType || 'high_latency'
       });
    };
-
 
    const deviceType = device.device?.type || device.type;
    const deviceConfig = DEVICE_TYPES[deviceType];
