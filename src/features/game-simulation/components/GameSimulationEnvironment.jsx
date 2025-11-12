@@ -27,6 +27,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [activeIssue, setActiveIssue] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
+  const [startGame, setStartGame ] = useState(false)
   const timeoutRef = useRef(null); // Use ref instead of state
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? { ...scenario } : { ...officeNetworkScenario });
@@ -36,7 +37,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [systemLogs, setSystemLogs] = useState([]);
   const [currentGameSession, setCurrentGameSession] = useState()
 
-    const [showCountdown, setShowCountdown] = useState(true);
+  const [showCountdown, setShowCountdown] = useState(true);
+ 
 
   const handleCountdownComplete = () => {
     setShowCountdown(false);
@@ -67,7 +69,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
 
   useEffect(() => {
-    if (!currentUser || !currentScenario) return;
+    if (!currentUser || !currentScenario || !startGame) return;
 
     const existingGame = scoreService.getCurrentGame();
     if (!existingGame) {
@@ -77,7 +79,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
         currentScenario.name
       );
     }
-  }, [currentUser, currentScenario]);
+  }, [currentUser, currentScenario, startGame]);
 
   const createNodeFromDevice = useCallback((device) => ({
     id: device._id,
@@ -162,8 +164,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
     setActiveIssue(null);
 
     // Schedule next issue after fix
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
+    // if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    // timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
   }, []);
 
   const handleOncomplete = () => {
@@ -172,7 +174,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
       scoreService.endGame(currentUser?.name);
       setCurrentGameSession(existingGame)
     }
-    // FIXED: Clear timeout on game over
+    // Clear timeout on game over
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -188,6 +190,21 @@ const GameSimulationEnvironment = ({ scenario }) => {
     console.log("Game Paused:", isPaused);
     setGamePaused(isPaused);
   };
+
+  const handleGameReset = () => {
+    console.log("Game Reset");
+    setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario })
+    setScore(0)
+    // Clear timeout on game reset
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  const handleStartEndGame = () => {
+    startGame ? setGameOver(true) : setStartGame(true)
+  }
 
   const handleApplyDeviceChanges = (deviceId, updates) => {
     if (!deviceId || !updates) return;
@@ -282,7 +299,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   }, [currentScenario.devices, nodes]);
 
   const triggerRandomIssue = useCallback(() => {
-    if (gameOver || gamePaused || activeIssue) return;
+    if (gameOver || gamePaused || !startGame) return;
 
     const randomIndex = Math.floor(Math.random() * currentScenario.devices.length);
     const randomDevice = currentScenario.devices[randomIndex];
@@ -309,19 +326,30 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
     if (!updatedDevice.deviceStatus?.online || updatedDevice.deviceStatus.latency > 50) {
       // const severity = !updatedDevice.deviceStatus?.online ? 'red' : 'yellow';
-      const indication = updatedDevice.deviceStatus.latency > 100 ? 'High' : 'Medium';
+      const indication = updatedDevice.deviceStatus.latency > 100 || !updatedDevice.deviceStatus.online ? 'High' : updatedDevice.deviceStatus.latency > 50 ? 'Medium' : "Low";
 
       if (!updatedDevice.deviceStatus?.online) {
         showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is offline!`, 'red')
         addLogEntry(
           updatedDevice,
-          `${updatedDevice.device.name}: ${updatedDevice.deviceStatus.latency ? 'Offline' : `High latency: ${updatedDevice.deviceStatus.latency}ms`}`,
+          `${updatedDevice.device.name}: ${updatedDevice.deviceStatus.latency > 100 ? 'Offline' : `High latency: ${updatedDevice.deviceStatus.latency}ms`}`,
           indication
         );
       } else {
         showRealTimeAlert(updatedDevice, `${updatedDevice.device.name} is experiencing high latency!`, 'yellow')
+        addLogEntry(
+          updatedDevice,
+          `${updatedDevice.device.name}: ${updatedDevice.deviceStatus.latency > 100 ? 'Offline' : `High latency: ${updatedDevice.deviceStatus.latency}ms`}`,
+          indication
+        );
       };
       playSound(!updatedDevice.deviceStatus?.online ? "red" : "yellow");
+    }else {
+      addLogEntry(
+        updatedDevice,
+        `${updatedDevice.device.name}: Issue automatically resolved - status changed to online`,
+        'Low'
+      );
     }
 
     setCurrentScenario(prevScenario => {
@@ -334,7 +362,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
         ),
       };
     });
-  }, [gameOver, gamePaused, playSound, activeIssue, currentScenario.devices]);
+  }, [gameOver, gamePaused, playSound, activeIssue, currentScenario.devices, startGame]);
 
   // Clear timeout when paused
   useEffect(() => {
@@ -346,9 +374,9 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
   // Initial issue trigger
   useEffect(() => {
-    if (!activeIssue && !gameOver && !gamePaused) {
+    if (!gameOver && !gamePaused) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => triggerRandomIssue(), 10000);
+      timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
     }
 
     return () => {
@@ -357,7 +385,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
         timeoutRef.current = null;
       }
     };
-  }, [activeIssue, gameOver, gamePaused, triggerRandomIssue]);
+  }, [gameOver, gamePaused, triggerRandomIssue]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -366,7 +394,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
     };
   }, []);
 
-    if (showCountdown) {
+  if (showCountdown) {
     return <GameCountdownSplash onComplete={handleCountdownComplete} />;
   }
 
@@ -379,11 +407,13 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
         <CountdownTimer
           initialTime={currentScenario.timeLimit}
-          isRunning={true}
           scenario={scenario || officeNetworkScenario}
           onComplete={handleOncomplete}
           handleGamePaused={handleGamePaused}
+          handleGameReset={handleGameReset}
+          handleStartEndGame={handleStartEndGame}
           gameOver={gameOver}
+          startGame={startGame}
           className="mb-2 dark:text-network-light"
         />
       </div>
@@ -398,6 +428,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
           applyChanges={handleApplyDeviceChanges}
         />
       </Modal>
+    
 
       {!gameOver ? (
         <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">

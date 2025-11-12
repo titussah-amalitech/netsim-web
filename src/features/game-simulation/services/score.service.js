@@ -9,7 +9,7 @@ class ScoreEngineService {
     this.STORAGE_KEY = "currentGameSession";
     this.SCORES_KEY = "scores";
     this.BASE_POINTS = 1000;
-    this.POINTS_PER_SECOND = 10;
+    this.POINTS_PER_SECOND = 50;
     this.MIN_POINTS = 100;
     this.CRITICAL_MULTIPLIER = 1.5;
   }

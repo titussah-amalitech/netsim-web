@@ -1,21 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button } from "../../../components";
-import { FaPause, FaPlay, FaRedo } from "react-icons/fa";
+import { FaPause, FaPlay, FaRedo, FaPlayCircle, FaStopCircle } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { scoreService } from '../services/score.service';
 
 const CountdownTimer = ({
   initialTime = 300,
-  isRunning = true,
   onComplete = () => { },
   className = "",
   scenario,
   gameOver,
   handleGamePaused,
+  handleGameReset,
+  handleStartEndGame,
+  startGame
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [active, setActive] = useState(isRunning);
+  const [active, setActive] = useState(false);
   const intervalRef = useRef(null);
   const { currentUser } = useSelector((state) => state.users);
   const navigate = useNavigate();
@@ -66,14 +68,23 @@ const CountdownTimer = ({
     const existingGame = scoreService.getCurrentGame();
     if (existingGame) scoreService.clearGame();
 
-    scoreService.initializeGame(
+    if(!gameOver){scoreService.initializeGame(
       scenario?.id || scenario?._id,
       currentUser?._id || currentUser?.id,
       scenario.name
-    );
+    );}
 
     if (gameOver) navigate(0)
+    setTimeLeft(initialTime)
+    handleGameReset()
   };
+
+  const startEndGame = () => {
+    handleStartEndGame()
+    if(!active){
+      setActive(true)
+    }
+  }
 
   return (
     <div className={`flex items-center flex-nowrap space-x-4 ${className}`}>
@@ -85,9 +96,10 @@ const CountdownTimer = ({
         <Button
           className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg"
           onClick={handlePauseResume}
+          disabled={!startGame}
         >
           {active ? <FaPause size={14} /> : <FaPlay size={14} />}
-          {active ? 'Pause' : 'Play'}
+          {active ? 'Pause' : 'Resume'}
         </Button>
       )}
 
@@ -98,6 +110,17 @@ const CountdownTimer = ({
         <FaRedo size={14} />
         {gameOver ? "Replay" : "Reset"}
       </Button>
+
+      {!gameOver && (
+        <Button
+          className="hover:bg-gray-100 flex items-center gap-2 px-3 py-1 rounded-lg"
+          onClick={startEndGame}
+          variant={startGame ? "danger" : "success"}
+        >
+          {startGame ? <FaStopCircle size={18} /> : <FaPlayCircle size={18} />}
+          {startGame ? 'End ' : 'Play'}
+        </Button>
+      )}
     </div>
   );
 };
