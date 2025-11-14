@@ -4,6 +4,7 @@ import { fetchLeaderboard } from "../../leaderboard/store/leaderboard.slice";
 import { PlayerNameModal } from "../components/PlayerNameModal";
 import { Button } from "../../../components";
 import GameSimulationEnvironment from "../components/GameSimulationEnvironment";
+import { useNavigate } from "react-router-dom";
 
 export const GameHub = () => {
    const dispatch = useDispatch();
@@ -11,40 +12,64 @@ export const GameHub = () => {
    const { selectedScenario } = useSelector((state) => state.scenarios)
 
    const [isModalOpen, setIsModalOpen] = useState(false);
-   const [approvalRequired, setApprovalRequired] = useState(currentUser?.role === "admin");
+   const [newGame, setNewGame] = useState(false);
 
+   const isAdmin = currentUser?.role === "admin";
+   const navigate = useNavigate()
+
+   const handleStartGame = () =>
+   {
+      setNewGame((prev) => !prev);
+   }
+
+   const handleCreateScenario = () =>
+   {
+      navigate("/scenario-editor")
+   }
+   
    useEffect(() => {
       dispatch(fetchLeaderboard());
    }, [dispatch]);
 
    return (
-      <div>
-         {!approvalRequired ? (
-            <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
-               <div className="max-w-4xl mx-auto">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-                     <h1 className="text-3xl flex justify-center font-bold text-gray-900 dark:text-white mb-6">
-                        Network Simulation Game
-                     </h1>
+     <div>
+       {!newGame ? (
+         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
+           <div className="max-w-4xl mx-auto">
+             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+               <h1 className="text-3xl flex justify-center font-bold text-gray-900 dark:text-white mb-6">
+                 Network Simulation Game
+               </h1>
 
-                     <div className="text-center py-8">
-                        <Button onClick={() => setApprovalRequired(prev => !prev)} variant="primary" size="large">
-                           Start Game
-                        </Button>
-                     </div>
-                  </div>
+               <div className="text-center py-8 space-x-4">
+                 {isAdmin && <Button
+                   onClick={handleCreateScenario}
+                   variant="success"
+                   size="large"
+                 >
+                   Create Scenario
+                 </Button>}
+                 <Button
+                   onClick={handleStartGame}
+                   variant="primary"
+                   size="large"
+                 >
+                   Start Game
+                 </Button>
                </div>
+             </div>
+           </div>
 
-               <PlayerNameModal
-                  isOpen={isModalOpen}
-                  onClose={() => setIsModalOpen(false)}
-               />
-            </div>
-         ) : (
-            <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full space-y-4">
-               <GameSimulationEnvironment scenario={selectedScenario} />
-            </div>
-         )}
-      </div>
+           <PlayerNameModal
+             isOpen={isModalOpen}
+             onClose={() => setIsModalOpen(false)}
+           />
+         </div>
+       ) : (
+         <div className="bg-network-lighter dark:bg-network-graphite text-network-text-dark dark:text-network-light w-full min-h-full space-y-4">
+           <GameSimulationEnvironment scenario={selectedScenario} />
+         </div>
+       )}
+     </div>
    );
 };

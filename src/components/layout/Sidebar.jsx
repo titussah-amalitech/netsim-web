@@ -11,6 +11,8 @@ export const Sidebar = () => {
   const { currentUser } = useSelector((state) => state.users);
   const isGameActive = true;
 
+  const isAdmin = currentUser?.role === "admin";
+
   const handleSignOut = () => {
     dispatch(clearUsers());
     window.location.reload(); // refresh to trigger PlayerNameModal again
@@ -23,30 +25,54 @@ export const Sidebar = () => {
         <div className="flex items-center space-x-3 mb-8">
           <Logo />
           <div>
-            <h2 className="text-network-text-darker dark:text-white font-semibold">NetSim</h2>
-            <p className="text-network-text-dark dark:text-network-text text-sm">Training Platform</p>
+            <h2 className="text-network-text-darker dark:text-white font-semibold">
+              NetSim
+            </h2>
+            <p className="text-network-text-dark dark:text-network-text text-sm">
+              Training Platform
+            </p>
           </div>
         </div>
 
         {/* Navigation Links */}
         <nav className="space-y-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                  ? "bg-network-primary-light text-white dark:bg-network-primary"
-                  : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
-                }`
-              }
-            >
-              <span className="text-lg">
-                <item.icon className="h-5 w-5" />
-              </span>
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+          {navItems.map((item) =>
+            item.path === "/scenario-editor" ? (
+              isAdmin && <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-network-primary-light text-white dark:bg-network-primary"
+                      : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
+                  }`
+                }
+              >
+                <span className="text-lg">
+                  <item.icon className="h-5 w-5" />
+                </span>
+                <span>{item.label}</span>
+              </NavLink>
+            ) : (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-network-primary-light text-white dark:bg-network-primary"
+                      : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
+                  }`
+                }
+              >
+                <span className="text-lg">
+                  <item.icon className="h-5 w-5" />
+                </span>
+                <span>{item.label}</span>
+              </NavLink>
+            )
+          )}
         </nav>
 
         {/* Game Status */}
@@ -54,7 +80,9 @@ export const Sidebar = () => {
           <div className="mt-8 p-4 bg-network-surface-light rounded-lg dark:bg-network-surface">
             <div className="flex items-center space-x-2 mb-2">
               <div className="w-2 h-2 bg-network-success rounded-full animate-pulse"></div>
-              <span className="text-network-success text-sm font-semibold">Game Running</span>
+              <span className="text-network-success text-sm font-semibold">
+                Game Running
+              </span>
             </div>
             <p className="text-network-text-dark text-xs dark:text-network-text">
               Monitor your network and resolve issues to earn points!
@@ -70,7 +98,7 @@ export const Sidebar = () => {
             <Button
               onClick={handleSignOut}
               className="flex w-full px-4 py-2 bg-red-400/80 hover:bg-red-400 text-white gap-2 rounded-lg text-sm font-medium transition-colors"
-              title='Sign Out'
+              title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
               Sign Out

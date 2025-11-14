@@ -19,6 +19,7 @@ import { GameOverScreen } from './GameOverScreen';
 import DeviceLogger from './DeviceLogger';
 import { AnimatedScore } from './AnimatedScore';
 import { GameCountdownSplash } from './GameCountdownSplash';
+import ConfirmExitSimulation from './ConfirmExitSimulation';
 
 const nodeTypes = { deviceNode: DeviceNode };
 
@@ -401,6 +402,14 @@ const GameSimulationEnvironment = ({ scenario }) => {
   return (
     <div className="flex flex-col w-full">
       <GameStats nodes={nodes} />
+      <ConfirmExitSimulation
+        gameOver={gameOver}
+        timeoutRef={timeoutRef}
+        score={ score }
+        startGame={startGame}
+        activeIssue={activeIssue}
+        scoreService={scoreService}
+      />
 
       <div className="flex justify-between items-center border-gray-600 p-4 border bg-network-light dark:bg-network-surface rounded-t mt-2">
         <AnimatedScore score={score} />
@@ -418,7 +427,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
         />
       </div>
 
-      <Modal isOpen={deviceToEdit !== null}
+      <Modal
+        isOpen={deviceToEdit !== null}
         title={"Adjust Device Parameters"}
         onClose={() => setDeviceToEdit(null)}
       >
@@ -428,11 +438,14 @@ const GameSimulationEnvironment = ({ scenario }) => {
           applyChanges={handleApplyDeviceChanges}
         />
       </Modal>
-    
 
       {!gameOver ? (
         <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">
-          <div className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${showLogs ? 'hidden lg:flex' : 'flex'}`}>
+          <div
+            className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${
+              showLogs ? "hidden lg:flex" : "flex"
+            }`}
+          >
             <ReactFlow
               key={nodes.length + score}
               nodes={nodes}
@@ -445,9 +458,15 @@ const GameSimulationEnvironment = ({ scenario }) => {
               <Background />
             </ReactFlow>
           </div>
-          <div className={`w-full lg:w-80 xl:w-120 ${showLogs ? 'flex' : 'hidden lg:flex'} lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}>
+          <div
+            className={`w-full lg:w-80 xl:w-120 ${
+              showLogs ? "flex" : "hidden lg:flex"
+            } lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}
+          >
             <div className="p-3 sm:p-4 border-b border-gray-600 flex justify-between items-center">
-              <h3 className="text-base sm:text-lg font-bold dark:text-network-light">System Logs</h3>
+              <h3 className="text-base sm:text-lg font-bold dark:text-network-light">
+                System Logs
+              </h3>
               <button
                 onClick={() => setShowLogs(false)}
                 className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -458,18 +477,19 @@ const GameSimulationEnvironment = ({ scenario }) => {
             <div className="flex-1 overflow-hidden p-3 sm:p-4">
               <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600 h-full">
                 <p className="italic mb-5">Monitoring network activity...</p>
-                {systemLogs.length ? <DeviceLogger logs={systemLogs} /> : <span className="flex justify-center items-center dark:text-red-200 font-bold h-full my-auto">
-                  No logs yet
-                </span>}
+                {systemLogs.length ? (
+                  <DeviceLogger logs={systemLogs} />
+                ) : (
+                  <span className="flex justify-center items-center dark:text-red-200 font-bold h-full my-auto">
+                    No logs yet
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <GameOverScreen
-          score={score}
-          gameData={currentGameSession}
-        />
+        <GameOverScreen score={score} gameData={currentGameSession} />
       )}
     </div>
   );
