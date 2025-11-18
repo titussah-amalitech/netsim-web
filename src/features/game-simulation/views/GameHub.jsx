@@ -12,7 +12,7 @@ export const GameHub = () => {
    const { selectedScenario } = useSelector((state) => state.scenarios)
 
    const [isModalOpen, setIsModalOpen] = useState(false);
-   const [newGame, setNewGame] = useState(false);
+   const [newGame, setNewGame] = useState(true);
 
    const isAdmin = currentUser?.role === "admin";
    const navigate = useNavigate()

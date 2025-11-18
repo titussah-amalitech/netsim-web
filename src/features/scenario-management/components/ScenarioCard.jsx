@@ -45,7 +45,7 @@ export const ScenarioCard = ({ scenario, isAdmin, setDeleteConfirm, handleEditSc
                   size="small"
                >
                   <Play className="w-4 h-4" />
-                  Run
+                  Play
                </Button>
 
                {isAdmin && (

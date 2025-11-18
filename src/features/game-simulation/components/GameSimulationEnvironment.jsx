@@ -204,7 +204,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
   };
 
   const handleStartEndGame = () => {
-    startGame ? setGameOver(true) : setStartGame(true)
+    startGame ? handleOncomplete() : setStartGame( true )
+    
   }
 
   const handleApplyDeviceChanges = (deviceId, updates) => {
@@ -400,7 +401,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full min-w-lg">
       <GameStats nodes={nodes} />
       <ConfirmExitSimulation
         gameOver={gameOver}

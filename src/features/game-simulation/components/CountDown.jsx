@@ -87,7 +87,7 @@ const CountdownTimer = ({
   }
 
   return (
-    <div className={`flex items-center flex-nowrap space-x-4 ${className}`}>
+    <div className={`flex items-center flex-wrap space-x-4 ${className}`}>
       <div className="text-xl font-semibold">
         {formatTime(timeLeft)}
       </div>

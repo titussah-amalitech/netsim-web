@@ -5,23 +5,30 @@ import { FaCrown, FaMedal } from "react-icons/fa";
 import { Loader } from "../../../components/common/Loader";
 import { Alert } from "../../../components/common/Alert";
 import { DataTable } from "../../../components/Table";
+import { LeaderBoardStats } from "../components/LeaderBoardStats";
 import { fetchScores } from "../../game-simulation/store/score.slice";
-import { Button } from "../../../components/common";
+import { Button } from "../../../components";
 import { useNavigate } from "react-router-dom";
-import { setSelectedScenario } from "../../scenario-management/store/scenario.slice";
 
-export const Leaderboard = () => {
+export const PlayersLeaderboard = () => {
   const dispatch = useDispatch();
+  const { scores,    loading, error } =
+    useSelector((state) => state.score);
+  let highestScore = 0, averageScore = 0, totalPlayers = 0;
+  const { selectedScenario } = useSelector((state) => state.scenarios);
   const navigate = useNavigate();
-  const { scenarios } = useSelector((state) => state.scenarios);
-
-  const { scores, loading, error } = useSelector((state) => state.score);
-
   const [alert, setAlert] = useState(null);
-//   console.log(scores);
+
   useEffect(() => {
     dispatch(fetchScores());
   }, [dispatch]);
+
+  const getRankIcon = (rank) => {
+    if (rank === 1) return <FaCrown className="text-yellow-500 text-2xl" />;
+    if (rank === 2) return <FaMedal className="text-purple-400 text-2xl" />;
+    if (rank === 3) return <Award className="text-network-warning text-2xl" />;
+    return `#${rank}`;
+  };
 
   const getScoreColor = (score, index) => {
     const rank = index + 1;
@@ -30,40 +37,42 @@ export const Leaderboard = () => {
     return "text-network-text-darker dark:text-white";
   };
 
-  const handleViewPlayersLeaderBoard = (scenario) => {
-    navigate(`/players-leaderboard/?id=${scenario.id}`);
-    dispatch(setSelectedScenario(scenario));
-  };
+  const players = scores.filter(
+    (s) => s?.scenarioName === selectedScenario?.name
+  );
 
-  const findTopScorer = (sName) => {
-    const players = scores.filter((s) => s.scenarioName === sName);
-
-    if (!players.length) return { name: "No players", score: 0 };
-
-    const rankPlayers = players.sort((a, b) => b.score - a.score);
-
-    return rankPlayers[0];
-  };
+  console.log(players)
+  if ( players.length )
+  {
+    const rankPlayers = players.sort( ( a, b ) => b.score - a.score );
+    totalPlayers = players.length 
+    highestScore = rankPlayers[ 0 ].score
+    averageScore = Math.floor(rankPlayers.reduce((s, player) => s + (player.score || 0), 0) / rankPlayers.length)
+  }
   // Define columns for DataTable
   const columns = [
     {
-      header: "Scenario",
-      accessor: "scenario",
+      header: "Rank",
+      accessor: "rank",
       render: (entry, index) => {
         const rank = index + 1;
         const isTopThree = rank <= 3;
 
         return (
           <div className="flex items-center">
-            <span className="text-sm font-medium text-network-text-darker dark:text-white">
-              {entry?.name}
+            <span
+              className={`text-xl font-semi-bold ${
+                isTopThree ? "" : "text-network-text-dark dark:text-gray-400"
+              }`}
+            >
+              {getRankIcon(rank)}
             </span>
           </div>
         );
       },
     },
     {
-      header: "Top Player",
+      header: "Player",
       accessor: "name",
       render: (entry) => (
         <div className="flex items-center">
@@ -72,30 +81,24 @@ export const Leaderboard = () => {
           </p>
           <div className="ml-4">
             <div className="text-sm font-medium text-network-text-darker dark:text-white">
-              {findTopScorer(entry.name).name}
-            </div>
-            <div className="text-xs  text-gray-500 dark:text-gray-400">
-              {`Score: ${findTopScorer(entry.name ).score}`}
+              {entry.name}
             </div>
           </div>
         </div>
       ),
     },
-
     {
-      header: "Action",
-      accessor: "action",
+      header: "Score",
+      accessor: "score",
       render: (entry, index) => (
-        <Button
+        <span
           className={`text-lg font-semi-bold ${getScoreColor(
             entry.score,
             index
           )}`}
-          size="small"
-          onClick={() => handleViewPlayersLeaderBoard(scenarios[index])}
         >
-          View
-        </Button>
+          {entry.score?.toLocaleString()}
+        </span>
       ),
     },
   ];
@@ -132,11 +135,20 @@ export const Leaderboard = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-network-text-darker dark:text-network-lighter">
-                Leaderboard
+                {selectedScenario?.name}
               </h1>
-              <p className="text-network-text-dark dark:text-gray-400">
-                Top 10 Scenarios
-              </p>
+              <div className="flex items-center space-x-4">
+                <p className="text-network-text-dark dark:text-gray-400">
+                  Top 10 Players
+                </p>
+                <Button
+                  variant="success"
+                  size="small"
+                  onClick={() => navigate("/")}
+                >
+                  Play
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -148,10 +160,10 @@ export const Leaderboard = () => {
               <Medal className="w-10 h-10 text-network-text-dark dark:text-network-text" />
             </div>
             <h2 className="text-xl font-semibold text-network-text-darker dark:text-white mb-2">
-              No Scenarios Yet
+              No Scores Yet
             </h2>
             <p className="text-network-text-dark dark:text-gray-400">
-              Be the first to create a scenario!
+              Be the first to set a score!
             </p>
           </div>
         )}
@@ -159,10 +171,21 @@ export const Leaderboard = () => {
         {/* Leaderboard Table */}
         {!error && scores.length > 0 && (
           <>
+            <LeaderBoardStats
+              entries={scores.filter(
+                (score) => score.scenarioName === selectedScenario?.name
+              )}
+              highestScore={highestScore}
+              averageScore={averageScore}
+              totalPlayers={totalPlayers}
+            />
+
             <DataTable
-              data={scenarios}
+              data={scores.filter(
+                (score) => score.scenarioName === selectedScenario?.name
+              )}
               columns={columns}
-              totalItems={scenarios.length}
+              totalItems={scores.length}
               loading={loading}
             />
           </>
