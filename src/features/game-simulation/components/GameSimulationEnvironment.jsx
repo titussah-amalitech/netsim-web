@@ -28,7 +28,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [activeIssue, setActiveIssue] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
-  const [startGame, setStartGame ] = useState(false)
+  const [startGame, setStartGame] = useState(false)
   const timeoutRef = useRef(null); // Use ref instead of state
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? { ...scenario } : { ...officeNetworkScenario });
@@ -39,7 +39,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [currentGameSession, setCurrentGameSession] = useState()
 
   const [showCountdown, setShowCountdown] = useState(true);
- 
+
 
   const handleCountdownComplete = () => {
     setShowCountdown(false);
@@ -188,14 +188,13 @@ const GameSimulationEnvironment = ({ scenario }) => {
   };
 
   const handleGamePaused = (isPaused) => {
-    console.log("Game Paused:", isPaused);
     setGamePaused(isPaused);
   };
 
   const handleGameReset = () => {
-    console.log("Game Reset");
     setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario })
     setScore(0)
+    setSystemLogs([])
     // Clear timeout on game reset
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -204,8 +203,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
   };
 
   const handleStartEndGame = () => {
-    startGame ? handleOncomplete() : setStartGame( true )
-    
+    startGame ? handleOncomplete() : setStartGame(true)
+
   }
 
   const handleApplyDeviceChanges = (deviceId, updates) => {
@@ -346,7 +345,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
         );
       };
       playSound(!updatedDevice.deviceStatus?.online ? "red" : "yellow");
-    }else {
+    } else {
       addLogEntry(
         updatedDevice,
         `${updatedDevice.device.name}: Issue automatically resolved - status changed to online`,
@@ -406,7 +405,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
       <ConfirmExitSimulation
         gameOver={gameOver}
         timeoutRef={timeoutRef}
-        score={ score }
+        score={score}
         startGame={startGame}
         activeIssue={activeIssue}
         scoreService={scoreService}
@@ -443,9 +442,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
       {!gameOver ? (
         <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">
           <div
-            className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${
-              showLogs ? "hidden lg:flex" : "flex"
-            }`}
+            className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${showLogs ? "hidden lg:flex" : "flex"
+              }`}
           >
             <ReactFlow
               key={nodes.length + score}
@@ -460,9 +458,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
             </ReactFlow>
           </div>
           <div
-            className={`w-full lg:w-80 xl:w-120 ${
-              showLogs ? "flex" : "hidden lg:flex"
-            } lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}
+            className={`w-full lg:w-80 xl:w-120 ${showLogs ? "flex" : "hidden lg:flex"
+              } lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}
           >
             <div className="p-3 sm:p-4 border-b border-gray-600 flex justify-between items-center">
               <h3 className="text-base sm:text-lg font-bold dark:text-network-light">
@@ -481,7 +478,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
                 {systemLogs.length ? (
                   <DeviceLogger logs={systemLogs} />
                 ) : (
-                  <span className="flex justify-center items-center dark:text-red-200 font-bold h-full my-auto">
+                  <span className="flex justify-center items-center dark:text-network-text-light font-bold h-full my-auto">
                     No logs yet
                   </span>
                 )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { createSearchParams, useNavigate } from "react-router-dom";
 import { Library, Trash2, Plus, BookOpen } from "lucide-react";
 import { fetchScenarios, setSelectedScenario } from "../store/scenario.slice";
 import { scenarioService } from "../../../services";
@@ -41,10 +41,17 @@ export const ScenarioLibrary = () => {
    const mediumScenarios = scenarios?.filter(s => s.difficulty === "medium").length || 0;
    const hardScenarios = scenarios?.filter(s => s.difficulty === "hard").length || 0;
 
-   const handleRunScenario = (scenario) => {
-      navigate(`/?id=${scenario.id}`);
-      dispatch(setSelectedScenario(scenario));
-   };
+const handleRunScenario = (scenario) => {
+  dispatch(setSelectedScenario(scenario));
+
+  navigate({
+    pathname: "/",
+    search: createSearchParams({
+      id: scenario.id,
+      is_game_mode: "true"
+    }).toString()
+  });
+};
 
    // Navigate to scenario editor with scenario ID in URL
    const handleEditScenario = (scenario) => {

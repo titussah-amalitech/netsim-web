@@ -8,6 +8,7 @@ import { LogOut } from "lucide-react";
 
 export const Sidebar = () => {
   const dispatch = useDispatch();
+
   const { currentUser } = useSelector((state) => state.users);
   const isGameActive = true;
 
@@ -15,8 +16,16 @@ export const Sidebar = () => {
 
   const handleSignOut = () => {
     dispatch(clearUsers());
-    window.location.reload(); // refresh to trigger PlayerNameModal again
+
+    // Hard redirect to home page
+    // window.history.pushState(null, "/", '');
+    // window.onpopstate = () => {
+    //   window.history.go(1);
+    // };
+
+      window.location.replace("/");
   };
+
 
   return (
     <aside className="w-64 h-full bg-network-lighter border border-network-border-light dark:bg-network-darker dark:border-network-border">
@@ -42,10 +51,9 @@ export const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-network-primary-light text-white dark:bg-network-primary"
-                      : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                    ? "bg-network-primary-light text-white dark:bg-network-primary"
+                    : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
                   }`
                 }
               >
@@ -59,10 +67,9 @@ export const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-network-primary-light text-white dark:bg-network-primary"
-                      : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
+                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                    ? "bg-network-primary-light text-white dark:bg-network-primary"
+                    : "text-network-text-dark hover:bg-network-surface-light hover:text-network-text-darker dark:text-network-text dark:hover:bg-network-surface dark:hover:text-white"
                   }`
                 }
               >

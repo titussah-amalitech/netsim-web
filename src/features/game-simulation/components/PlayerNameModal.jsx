@@ -43,14 +43,11 @@ export const PlayerNameModal = ({ isOpen, onClose }) => {
         role: isAdmin ? "admin" : "player",
       };
 
-      const result = await dispatch(createUser(newUser)).unwrap();
+      await dispatch(createUser(newUser)).unwrap();
 
-      // Redirect based on role
-      if (result.role === "admin") {
-        navigate("/scenario-editor");
-      } else {
-        navigate("/scenario-library");
-      }
+      // Redirect to home
+        navigate("/");
+
 
       // Reset modal state
       setPlayerName("");

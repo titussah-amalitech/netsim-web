@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 
 export const PlayersLeaderboard = () => {
   const dispatch = useDispatch();
-  const { scores,    loading, error } =
+  const { scores, loading, error } =
     useSelector((state) => state.score);
   let highestScore = 0, averageScore = 0, totalPlayers = 0;
   const { selectedScenario } = useSelector((state) => state.scenarios);
@@ -42,11 +42,10 @@ export const PlayersLeaderboard = () => {
   );
 
   console.log(players)
-  if ( players.length )
-  {
-    const rankPlayers = players.sort( ( a, b ) => b.score - a.score );
-    totalPlayers = players.length 
-    highestScore = rankPlayers[ 0 ].score
+  if (players.length) {
+    const rankPlayers = players.sort((a, b) => b.score - a.score);
+    totalPlayers = players.length
+    highestScore = rankPlayers[0].score
     averageScore = Math.floor(rankPlayers.reduce((s, player) => s + (player.score || 0), 0) / rankPlayers.length)
   }
   // Define columns for DataTable
@@ -61,9 +60,8 @@ export const PlayersLeaderboard = () => {
         return (
           <div className="flex items-center">
             <span
-              className={`text-xl font-semi-bold ${
-                isTopThree ? "" : "text-network-text-dark dark:text-gray-400"
-              }`}
+              className={`text-xl font-semi-bold ${isTopThree ? "" : "text-network-text-dark dark:text-gray-400"
+                }`}
             >
               {getRankIcon(rank)}
             </span>
@@ -144,7 +142,7 @@ export const PlayersLeaderboard = () => {
                 <Button
                   variant="success"
                   size="small"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/?is_game_mode=true")}
                 >
                   Play
                 </Button>

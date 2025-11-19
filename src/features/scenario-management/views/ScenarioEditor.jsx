@@ -256,7 +256,7 @@ export const ScenarioEditor = () => {
       }
 
       dispatch(setSelectedScenario(scenario))
-      navigate('/')
+      navigate('/?is_game_mode=true')
    }, [scenario, dispatch, navigate, showAlert])
 
    /** File upload trigger */
