@@ -8,19 +8,19 @@ import { DataTable } from "../../../components/Table";
 import { fetchScores } from "../../game-simulation/store/score.slice";
 import { Button } from "../../../components/common";
 import { useNavigate } from "react-router-dom";
-import { setSelectedScenario } from "../../scenario-management/store/scenario.slice";
+import { fetchScenarios, setSelectedScenario } from "../../scenario-management/store/scenario.slice";
 
 export const Leaderboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { scenarios } = useSelector((state) => state.scenarios);
-
   const { scores, loading, error } = useSelector((state) => state.score);
 
   const [alert, setAlert] = useState(null);
-//   console.log(scores);
+
   useEffect(() => {
     dispatch(fetchScores());
+    dispatch(fetchScenarios());
   }, [dispatch]);
 
   const getScoreColor = (score, index) => {
@@ -44,15 +44,13 @@ export const Leaderboard = () => {
 
     return rankPlayers[0];
   };
+  
   // Define columns for DataTable
   const columns = [
     {
       header: "Scenario",
       accessor: "scenario",
-      render: (entry, index) => {
-        const rank = index + 1;
-        const isTopThree = rank <= 3;
-
+      render: (entry) => {
         return (
           <div className="flex items-center">
             <span className="text-sm font-medium text-network-text-darker dark:text-white">
