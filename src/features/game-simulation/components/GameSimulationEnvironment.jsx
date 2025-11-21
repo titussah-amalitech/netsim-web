@@ -29,7 +29,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
   const [startGame, setStartGame] = useState(true)
-  const timeoutRef = useRef(null); // Use ref instead of state
+  const timeoutRef = useRef(null);
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? { ...scenario } : { ...officeNetworkScenario });
   const { currentUser } = useSelector((state) => state.users);
@@ -37,6 +37,9 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [showLogs, setShowLogs] = useState(false);
   const [systemLogs, setSystemLogs] = useState([]);
   const [currentGameSession, setCurrentGameSession] = useState()
+
+  // Add this state in GameSimulationEnvironment
+  const [isGameActiveSession, setIsGameActiveSession] = useState(false);
 
   const [showCountdown, setShowCountdown] = useState(true);
 
@@ -70,7 +73,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
 
 
   useEffect(() => {
-    if (!currentUser || !currentScenario || !startGame) return;
+    if (!startGame || isGameActiveSession || gameOver || !currentUser || !currentScenario) return;
 
     const existingGame = scoreService.getCurrentGame();
     if (!existingGame) {
@@ -80,8 +83,10 @@ const GameSimulationEnvironment = ({ scenario }) => {
         currentScenario.name,
         currentScenario?.difficulty || 'medium'
       );
+
+      setIsGameActiveSession(true);
     }
-  }, [currentUser, currentScenario, startGame]);
+  }, [startGame, gameOver, currentUser, currentScenario, isGameActiveSession]);
 
   const createNodeFromDevice = useCallback((device) => ({
     id: device._id,
@@ -171,11 +176,17 @@ const GameSimulationEnvironment = ({ scenario }) => {
   }, []);
 
   const handleOncomplete = () => {
+    setGameOver(true);
+
     const existingGame = scoreService.getCurrentGame();
     if (existingGame) {
       scoreService.endGame(currentUser?.name);
       setCurrentGameSession(existingGame)
     }
+
+    // Mark session as no longer active
+    setIsGameActiveSession(false);
+
     // Clear timeout on game over
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -183,7 +194,6 @@ const GameSimulationEnvironment = ({ scenario }) => {
     }
 
     setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario });
-    setGameOver(true);
     setGamePaused(false);
     setActiveIssue(null);
   };
@@ -193,9 +203,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
   };
 
   const handleGameReset = () => {
+    scoreService.clearGame(); // Clear any leftover
+    setIsGameActiveSession(false);
     setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario })
     setScore(0)
-    setSystemLogs( [] )
+    setSystemLogs([])
     setStartGame(false)
     setGameOver(false)
     setGamePaused(false)
@@ -208,8 +220,14 @@ const GameSimulationEnvironment = ({ scenario }) => {
   };
 
   const handleStartEndGame = () => {
-    startGame ? handleOncomplete() : setStartGame(true)
-
+    if (startGame) {
+      // Ending game
+      handleOncomplete();
+    } else {
+      // Starting new game
+      setStartGame(true);
+      setIsGameActiveSession(false);
+    }
   }
 
   const handleApplyDeviceChanges = (deviceId, updates) => {
@@ -382,8 +400,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
     currentScenario.difficulty === "hard"
       ? 15000
       : currentScenario.difficulty === "medium"
-      ? 22500
-      : 30000;
+        ? 22500
+        : 30000;
 
   // Initial issue trigger
   useEffect(() => {

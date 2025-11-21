@@ -37,9 +37,13 @@ class ScoreEngineService {
    * @param {string} difficulty - The difficulty level ('easy', 'medium', 'hard')
    */
   initializeGame(scenarioId, userId, scenarioName, difficulty = 'easy') {
+    // Clear any existing game session first
+    localStorage.removeItem(this.STORAGE_KEY);
+    
     // Validate difficulty
     const difficultyLevel = difficulty.toLowerCase();
     if (!this.DIFFICULTY_SETTINGS[difficultyLevel]) {
+      console.warn(`Invalid difficulty "${difficulty}", defaulting to "easy"`);
       difficulty = 'easy';
     }
 
@@ -61,7 +65,15 @@ class ScoreEngineService {
       isActive: true,
     };
 
+
+    // Force set to localStorage directly first
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(gameSession));
+    
+    // Then update through the service
     localStorageService.set(this.STORAGE_KEY, gameSession);
+
+    console.log("INITGame: ",gameSession)
+
     return gameSession;
   }
 
@@ -193,9 +205,13 @@ class ScoreEngineService {
    */
   endGame(playerName) {
     const gameSession = this.getCurrentGame();
+    
+    console.log("endGame: ",gameSession)
 
     // Return nothing if no game session or zero score
     if (!gameSession || gameSession.score === 0) {
+      console.log("HAHAAAAAAA")
+      this.clearGame()
       return null;
     }
 
@@ -207,6 +223,7 @@ class ScoreEngineService {
       score: gameSession.score,
       timestamp: new Date().toISOString(),
       scenarioName: gameSession.scenarioName,
+      scenarioId: gameSession.scenarioId,
       difficulty: gameSession.difficulty,
       issuesFixed: gameSession.issuesFixed,
       totalIssues: gameSession.totalIssues,
@@ -217,20 +234,22 @@ class ScoreEngineService {
     // Get saved scores
     const scores = localStorageService.get(this.SCORES_KEY, []);
 
-    // Check if this player already has a score
+    // Check if this player already has a score for THIS specific scenario
     const existingIndex = scores.findIndex(
-      (s) => s.name.toLowerCase() === playerName.trim().toLowerCase()
+      (s) => 
+        s.name.toLowerCase() === playerName.trim().toLowerCase() &&
+        s.scenarioName === gameSession.scenarioName
     );
 
     if (existingIndex !== -1) {
       const existing = scores[existingIndex];
 
-      // Keep the higher score only
+      // Keep the higher score only for this scenario
       if (gameSummary.score > existing.score) {
         scores[existingIndex] = gameSummary;
       }
     } else {
-      // Add new player to the list
+      // Add new score entry (new player or same player with different scenario)
       scores.push(gameSummary);
     }
 
@@ -240,13 +259,15 @@ class ScoreEngineService {
     // Clear current game session
     localStorage.removeItem(this.STORAGE_KEY);
 
-    return gameSummary;
+    console.log("REACHED")
+    return null;
   }
 
   /**
    * Clear current game session
    */
   clearGame() {
+    console.log("rREMOVED")
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
