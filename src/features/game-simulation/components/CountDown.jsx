@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "../../../components";
 import { FaPause, FaPlay, FaRedo, FaPlayCircle, FaStopCircle } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { scoreService } from '../services/score.service';
 
 const CountdownTimer = ({

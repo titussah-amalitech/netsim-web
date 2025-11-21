@@ -40,6 +40,7 @@ export const localStorageService = {
   // Remove item by id
   remove: (key, id) => {
     let arr = localStorageService.get(key);
+    console.log(arr)
     arr = arr.filter((i) => i.id !== id);
     localStorageService.set(key, arr);
   },
