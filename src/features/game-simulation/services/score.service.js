@@ -72,7 +72,6 @@ class ScoreEngineService {
     // Then update through the service
     localStorageService.set(this.STORAGE_KEY, gameSession);
 
-    console.log("INITGame: ",gameSession)
 
     return gameSession;
   }
@@ -206,11 +205,9 @@ class ScoreEngineService {
   endGame(playerName) {
     const gameSession = this.getCurrentGame();
     
-    console.log("endGame: ",gameSession)
 
     // Return nothing if no game session or zero score
     if (!gameSession || gameSession.score === 0) {
-      console.log("HAHAAAAAAA")
       this.clearGame()
       return null;
     }
@@ -259,7 +256,6 @@ class ScoreEngineService {
     // Clear current game session
     localStorage.removeItem(this.STORAGE_KEY);
 
-    console.log("REACHED")
     return null;
   }
 
@@ -267,7 +263,6 @@ class ScoreEngineService {
    * Clear current game session
    */
   clearGame() {
-    console.log("rREMOVED")
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
