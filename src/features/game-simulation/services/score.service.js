@@ -9,9 +9,24 @@ class ScoreEngineService {
     this.STORAGE_KEY = "currentGameSession";
     this.SCORES_KEY = "scores";
     this.BASE_POINTS = 1000;
-    this.POINTS_PER_SECOND = 50;
     this.MIN_POINTS = 100;
     this.CRITICAL_MULTIPLIER = 1.5;
+    
+    // Difficulty settings
+    this.DIFFICULTY_SETTINGS = {
+      easy: {
+        pointsPerSecond: 50,
+        timerSpeed: 1.0
+      },
+      medium: {
+        pointsPerSecond: 100,
+        timerSpeed: 1.25
+      },
+      hard: {
+        pointsPerSecond: 150,
+        timerSpeed: 1.5
+      }
+    };
   }
 
   /**
@@ -19,12 +34,24 @@ class ScoreEngineService {
    * @param {string} scenarioId - The scenario ID
    * @param {string} userId - The current user ID
    * @param {string} scenarioName - The scenario name
+   * @param {string} difficulty - The difficulty level ('easy', 'medium', 'hard')
    */
-  initializeGame(scenarioId, userId, scenarioName) {
+  initializeGame(scenarioId, userId, scenarioName, difficulty = 'easy') {
+    // Validate difficulty
+    const difficultyLevel = difficulty.toLowerCase();
+    if (!this.DIFFICULTY_SETTINGS[difficultyLevel]) {
+      difficulty = 'easy';
+    }
+
+    const difficultyConfig = this.DIFFICULTY_SETTINGS[difficultyLevel];
+
     const gameSession = {
       scenarioId,
       userId,
       scenarioName,
+      difficulty: difficultyLevel,
+      pointsPerSecond: difficultyConfig.pointsPerSecond,
+      timerSpeed: difficultyConfig.timerSpeed,
       score: 0,
       startTime: Date.now(),
       activeIssues: {}, // { deviceId: { issueType, startTime } }
@@ -75,10 +102,11 @@ class ScoreEngineService {
    * Calculate points based on time taken to fix
    * @param {number} timeTakenMs - Time in milliseconds
    * @param {string} issueType - 'yellow' or 'red'
+   * @param {number} pointsPerSecond - Points deducted per second (from difficulty)
    */
-  calculatePoints(timeTakenMs, issueType) {
+  calculatePoints(timeTakenMs, issueType, pointsPerSecond) {
     const timeTakenSeconds = Math.floor(timeTakenMs / 1000);
-    let points = this.BASE_POINTS - timeTakenSeconds * this.POINTS_PER_SECOND;
+    let points = this.BASE_POINTS - timeTakenSeconds * pointsPerSecond;
 
     // Apply minimum points
     points = Math.max(points, this.MIN_POINTS);
@@ -108,9 +136,13 @@ class ScoreEngineService {
       return null;
     }
 
-    // Calculate time taken and points
+    // Calculate time taken and points using the session's difficulty settings
     const timeTaken = Date.now() - issue.startTime;
-    const pointsAwarded = this.calculatePoints(timeTaken, issue.issueType);
+    const pointsAwarded = this.calculatePoints(
+      timeTaken, 
+      issue.issueType, 
+      gameSession.pointsPerSecond
+    );
 
     // Update game session
     gameSession.score += pointsAwarded;
@@ -150,63 +182,66 @@ class ScoreEngineService {
       avgFixTime,
       lastPoints: gameSession.lastPoints,
       elapsedTime: Math.floor(totalTime / 1000),
+      difficulty: gameSession.difficulty,
+      timerSpeed: gameSession.timerSpeed,
     };
   }
 
-/**
- * End the game and save score
- * @param {string} playerName - The player's name
- */
-endGame(playerName) {
-  const gameSession = this.getCurrentGame();
+  /**
+   * End the game and save score
+   * @param {string} playerName - The player's name
+   */
+  endGame(playerName) {
+    const gameSession = this.getCurrentGame();
 
-  // Return nothing if no game session or zero score
-  if (!gameSession || gameSession.score === 0) {
-    return null;
-  }
-
-  gameSession.isActive = false;
-  gameSession.endTime = Date.now();
-
-  const gameSummary = {
-    name: playerName.trim(),
-    score: gameSession.score,
-    timestamp: new Date().toISOString(),
-    scenarioName: gameSession.scenarioName,
-    issuesFixed: gameSession.issuesFixed,
-    totalIssues: gameSession.totalIssues,
-    duration: Math.floor((gameSession.endTime - gameSession.startTime) / 1000),
-    id: Date.now(),
-  };
-
-  // Get saved scores
-  const scores = localStorageService.get(this.SCORES_KEY, []);
-
-  // Check if this player already has a score
-  const existingIndex = scores.findIndex(
-    (s) => s.name.toLowerCase() === playerName.trim().toLowerCase()
-  );
-
-  if (existingIndex !== -1) {
-    const existing = scores[existingIndex];
-
-    // Keep the higher score only
-    if (gameSummary.score > existing.score) {
-      scores[existingIndex] = gameSummary;
+    // Return nothing if no game session or zero score
+    if (!gameSession || gameSession.score === 0) {
+      return null;
     }
-  } else {
-    // Add new player to the list
-    scores.push(gameSummary);
+
+    gameSession.isActive = false;
+    gameSession.endTime = Date.now();
+
+    const gameSummary = {
+      name: playerName.trim(),
+      score: gameSession.score,
+      timestamp: new Date().toISOString(),
+      scenarioName: gameSession.scenarioName,
+      difficulty: gameSession.difficulty,
+      issuesFixed: gameSession.issuesFixed,
+      totalIssues: gameSession.totalIssues,
+      duration: Math.floor((gameSession.endTime - gameSession.startTime) / 1000),
+      id: Date.now(),
+    };
+
+    // Get saved scores
+    const scores = localStorageService.get(this.SCORES_KEY, []);
+
+    // Check if this player already has a score
+    const existingIndex = scores.findIndex(
+      (s) => s.name.toLowerCase() === playerName.trim().toLowerCase()
+    );
+
+    if (existingIndex !== -1) {
+      const existing = scores[existingIndex];
+
+      // Keep the higher score only
+      if (gameSummary.score > existing.score) {
+        scores[existingIndex] = gameSummary;
+      }
+    } else {
+      // Add new player to the list
+      scores.push(gameSummary);
+    }
+
+    // Save updated list
+    localStorageService.set(this.SCORES_KEY, scores);
+
+    // Clear current game session
+    localStorage.removeItem(this.STORAGE_KEY);
+
+    return gameSummary;
   }
-
-  // Save updated list
-  localStorageService.set(this.SCORES_KEY, scores);
-
-  // Clear current game session
-  localStorage.removeItem(this.STORAGE_KEY);
-
-  return gameSummary;
-}
 
   /**
    * Clear current game session
