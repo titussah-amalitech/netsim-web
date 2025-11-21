@@ -20,7 +20,6 @@ const CountdownTimer = ({
   const [active, setActive] = useState(false);
   const intervalRef = useRef(null);
   const { currentUser } = useSelector((state) => state.users);
-  const navigate = useNavigate();
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
@@ -31,8 +30,9 @@ const CountdownTimer = ({
       .padStart(2, "0");
     return `${m}:${s}`;
   };
-
+  
   // Handle countdown logic
+  const difficultyLevel = scenario.difficulty === 'hard' ? 500 : scenario.difficulty === 'medium' ? 750 : 1000;
   useEffect(() => {
     if (!active || gameOver) {
       clearInterval(intervalRef.current);
@@ -48,7 +48,7 @@ const CountdownTimer = ({
         }
         return prev - 1;
       });
-    }, 1000);
+    },  difficultyLevel);
 
     return () => clearInterval(intervalRef.current);
   }, [active, onComplete, gameOver]);
@@ -71,13 +71,21 @@ const CountdownTimer = ({
     if(!gameOver){scoreService.initializeGame(
       scenario?.id || scenario?._id,
       currentUser?._id || currentUser?.id,
-      scenario.name
-    );}
+      scenario.name,
+      scenario?.difficulty || 'medium'
+    );
+    }
+    setActive(false);
 
-    if (gameOver) navigate(0)
     setTimeLeft(initialTime)
     handleGameReset()
   };
+
+  useEffect( () =>
+  {
+
+    if(startGame) setActive( true );
+  }, [ ] );  
 
   const startEndGame = () => {
     handleStartEndGame()

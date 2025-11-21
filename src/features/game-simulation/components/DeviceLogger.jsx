@@ -26,11 +26,13 @@ const DeviceLogger = ({ logs = [] }) => {
     if (!filteredLogs.length) {
       return (
         <div className="text-center py-6">
-          <span className="text-red-400 font-bold">
-            {query ? `No logs match your search: "${query}"` : `No ${selectedSeverity} logs`}
+          <span className="dark:text-network-text-light font-bold">
+            {query
+              ? `No logs match your search: "${query}"`
+              : `No ${selectedSeverity} logs`}
           </span>
         </div>
-      )
+      );
     }
 
     return filteredLogs.map((log, index) => (
