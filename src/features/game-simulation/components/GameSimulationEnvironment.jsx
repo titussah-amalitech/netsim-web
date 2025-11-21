@@ -28,7 +28,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const [activeIssue, setActiveIssue] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
-  const [startGame, setStartGame] = useState(false)
+  const [startGame, setStartGame] = useState(true)
   const timeoutRef = useRef(null); // Use ref instead of state
   const [score, setScore] = useState(0);
   const [currentScenario, setCurrentScenario] = useState(scenario ? { ...scenario } : { ...officeNetworkScenario });
@@ -77,7 +77,8 @@ const GameSimulationEnvironment = ({ scenario }) => {
       scoreService.initializeGame(
         currentScenario?.id || currentScenario?._id,
         currentUser?._id || currentUser?.id,
-        currentScenario.name
+        currentScenario.name,
+        currentScenario?.difficulty || 'medium'
       );
     }
   }, [currentUser, currentScenario, startGame]);
@@ -194,7 +195,11 @@ const GameSimulationEnvironment = ({ scenario }) => {
   const handleGameReset = () => {
     setCurrentScenario(scenario ? { ...scenario } : { ...officeNetworkScenario })
     setScore(0)
-    setSystemLogs([])
+    setSystemLogs( [] )
+    setStartGame(false)
+    setGameOver(false)
+    setGamePaused(false)
+    setActiveIssue(null)
     // Clear timeout on game reset
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -373,11 +378,18 @@ const GameSimulationEnvironment = ({ scenario }) => {
     }
   }, [gamePaused]);
 
+  const difficultyLevel =
+    currentScenario.difficulty === "hard"
+      ? 15000
+      : currentScenario.difficulty === "medium"
+      ? 22500
+      : 30000;
+
   // Initial issue trigger
   useEffect(() => {
     if (!gameOver && !gamePaused) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => triggerRandomIssue(), 30000);
+      timeoutRef.current = setTimeout(() => triggerRandomIssue(), difficultyLevel);
     }
 
     return () => {
@@ -442,7 +454,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
       {!gameOver ? (
         <div className="flex flex-col lg:flex-row flex-1 border-t-0 border border-gray-600 rounded-b overflow-hidden">
           <div
-            className={`h-[600px] lg:flex-1 bg-network-light dark:bg-network-surface ${showLogs ? "hidden lg:flex" : "flex"
+            className={`min-h-[600px] max-h-[800px] lg:flex-1 bg-network-light dark:bg-network-surface ${showLogs ? "hidden lg:flex" : "flex"
               }`}
           >
             <ReactFlow
@@ -473,7 +485,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
               </button>
             </div>
             <div className="flex-1 overflow-hidden p-3 sm:p-4">
-              <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600 h-full">
+              <div className="text-xs sm:text-sm dark:text-gray-300 text-gray-600 h-full max-h-[800px]">
                 <p className="italic mb-5">Monitoring network activity...</p>
                 {systemLogs.length ? (
                   <DeviceLogger logs={systemLogs} />
