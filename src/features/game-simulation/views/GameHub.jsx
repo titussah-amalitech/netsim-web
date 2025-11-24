@@ -23,7 +23,7 @@ export const GameHub = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("is_game_mode") === "true") {
+    if (params.get("is_game_mode") === "true" && selectedScenario) {
       setIsGameMode(true);
     }
   }, [location.search]);
