@@ -133,7 +133,7 @@ export const PlayerNameModal = ({ isOpen, onClose }) => {
             className="gap-2"
             disabled={loading || !playerName.trim() || (isAdmin && !adminKey.trim())}
           >
-            <Play size={20} /> <span>Start Game</span>
+            <Play size={20} /> <span>Sign In</span>
           </Button>
         </div>
       </div>

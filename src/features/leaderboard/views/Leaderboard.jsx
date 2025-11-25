@@ -70,7 +70,7 @@ export const Leaderboard = () => {
       render: (entry) => (
         <div className="flex items-center">
           <p className="flex-shrink-0 h-10 w-10 bg-network-primary/10 dark:bg-network-primary/20 rounded-full flex items-center justify-center">
-            {entry.name?.charAt(0)?.toUpperCase()}
+            {findTopScorer(entry.name).name?.charAt(0)?.toUpperCase()}
           </p>
           <div className="ml-4">
             <div className="text-sm font-medium text-network-text-darker dark:text-white">
