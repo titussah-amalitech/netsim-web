@@ -153,7 +153,6 @@ export const ScenarioEditor = () => {
       if (selectedScenario) {
          setScenario(selectedScenario)
          setIsEditMode(true)
-         showAlert("info", "Scenario Loaded", `Loaded previously selected scenario: ${selectedScenario.name}`)
       }
    }, [selectedScenario, setScenario, showAlert])
 
@@ -183,8 +182,10 @@ export const ScenarioEditor = () => {
             .finally(() => {
                setLoadingScenario(false)
             })
+      } else {
+         clearScenario()
       }
-   }, [searchParams, dispatch, setScenario, navigate, showAlert])
+   }, [searchParams, dispatch, setScenario, navigate, showAlert, clearScenario])
 
    /** Scenario operations */
    const handleSaveScenario = useCallback(() => {
