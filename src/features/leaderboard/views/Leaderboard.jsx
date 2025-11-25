@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Trophy, Medal, Award } from "lucide-react";
-import { FaCrown, FaMedal } from "react-icons/fa";
+import { Trophy, Medal } from "lucide-react";
 import { Loader } from "../../../components/common/Loader";
 import { Alert } from "../../../components/common/Alert";
 import { DataTable } from "../../../components/Table";
@@ -15,6 +14,11 @@ export const Leaderboard = () => {
   const navigate = useNavigate();
   const { scenarios } = useSelector((state) => state.scenarios);
   const { scores, loading, error } = useSelector((state) => state.score);
+
+  // Keep scenarios that have at least one score greater than 0
+  const filteredScenarios = scenarios.filter(scenario =>
+    scores.some(score => score.scenarioId === scenario.id && score.score > 0)
+  );
 
   const [alert, setAlert] = useState(null);
 
@@ -44,7 +48,7 @@ export const Leaderboard = () => {
 
     return rankPlayers[0];
   };
-  
+
   // Define columns for DataTable
   const columns = [
     {
@@ -73,7 +77,7 @@ export const Leaderboard = () => {
               {findTopScorer(entry.name).name}
             </div>
             <div className="text-xs  text-gray-500 dark:text-gray-400">
-              {`Score: ${findTopScorer(entry.name ).score}`}
+              {`Score: ${findTopScorer(entry.name).score}`}
             </div>
           </div>
         </div>
@@ -90,7 +94,7 @@ export const Leaderboard = () => {
             index
           )}`}
           size="small"
-          onClick={() => handleViewPlayersLeaderBoard(scenarios[index])}
+          onClick={() => handleViewPlayersLeaderBoard(filteredScenarios[index])}
         >
           View
         </Button>
@@ -158,9 +162,9 @@ export const Leaderboard = () => {
         {!error && scores.length > 0 && (
           <>
             <DataTable
-              data={scenarios}
+              data={filteredScenarios}
               columns={columns}
-              totalItems={scenarios.length}
+              totalItems={filteredScenarios.length}
               loading={loading}
             />
           </>

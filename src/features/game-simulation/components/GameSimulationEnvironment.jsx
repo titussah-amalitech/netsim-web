@@ -487,10 +487,7 @@ const GameSimulationEnvironment = ({ scenario }) => {
               <Background />
             </ReactFlow>
           </div>
-          <div
-            className={`w-full lg:w-80 xl:w-120 ${showLogs ? "flex" : "hidden lg:flex"
-              } lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}
-          >
+          <div className={` w-full lg:w-80  ${showLogs ? 'flex' : 'hidden lg:flex'} lg:border-l border-t lg:border-t-0 border-gray-600  bg-network-light dark:bg-network-surface  flex-col max-h-[400px] lg:max-h-none `}>
             <div className="p-3 sm:p-4 border-b border-gray-600 flex justify-between items-center">
               <h3 className="text-base sm:text-lg font-bold dark:text-network-light">
                 System Logs
