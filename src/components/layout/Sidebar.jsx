@@ -10,7 +10,7 @@ export const Sidebar = () => {
   const dispatch = useDispatch();
 
   const { currentUser } = useSelector((state) => state.users);
-  const isGameActive = true;
+  // const isGameActive = true;
 
   const isAdmin = currentUser?.role === "admin";
 
@@ -83,7 +83,7 @@ export const Sidebar = () => {
         </nav>
 
         {/* Game Status */}
-        {isGameActive && (
+        {/* {isGameActive && (
           <div className="mt-8 p-4 bg-network-surface-light rounded-lg dark:bg-network-surface">
             <div className="flex items-center space-x-2 mb-2">
               <div className="w-2 h-2 bg-network-success rounded-full animate-pulse"></div>
@@ -95,7 +95,7 @@ export const Sidebar = () => {
               Monitor your network and resolve issues to earn points!
             </p>
           </div>
-        )}
+        )} */}
 
         {/* Bottom Section */}
         <div className="mt-auto space-y-4">
