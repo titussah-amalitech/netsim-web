@@ -5,6 +5,8 @@ import DifficultyBadge from '../../game-simulation/components/DifficultyBadge';
 
 export const ScenarioProperties = ({
    scenario,
+   errorState,
+   setErrorState,
    onUpdateProperty,
    onUpdateMetadata
 }) => {
@@ -17,9 +19,13 @@ export const ScenarioProperties = ({
                type="text"
                placeholder="Scenario Name"
                value={scenario.name}
-               onChange={(e) => onUpdateProperty('name', e.target.value)}
+               onChange={(e) => {
+                  setErrorState("");
+                  onUpdateProperty('name', e.target.value);
+               }}
                className="w-full border border-network-border-light dark:border-0 dark:bg-network-gray-light rounded p-2 text-network-text-darker dark:text-network-text-light placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
+            {errorState && <p className='text-red-300 text-xs'>{errorState}</p>}
 
             <textarea
                placeholder="Description"
@@ -37,21 +43,21 @@ export const ScenarioProperties = ({
                placeholder="Select difficulty level"
                className="w-full bg-white"
                renderSelected={(value) => {
-               const opt = DIFFICULTY_OPTIONS.find((o) => o.value === value)
-               return opt ? (
-                  <div className="flex items-center space-x-2">
-                     <DifficultyBadge level={opt.value} />
-                     <span className="hidden sm:inline">{opt.label}</span>
-                  </div>
-               ) : (
-                  "Select difficulty"
-               )
+                  const opt = DIFFICULTY_OPTIONS.find((o) => o.value === value)
+                  return opt ? (
+                     <div className="flex items-center space-x-2">
+                        <DifficultyBadge level={opt.value} />
+                        <span className="hidden sm:inline">{opt.label}</span>
+                     </div>
+                  ) : (
+                     "Select difficulty"
+                  )
                }}
                renderOption={(option) => (
-               <div className="flex items-center space-x-2">
-                  <DifficultyBadge level={option.value} />
-                  <span>{option.label}</span>
-               </div>
+                  <div className="flex items-center space-x-2">
+                     <DifficultyBadge level={option.value} />
+                     <span>{option.label}</span>
+                  </div>
                )}
             />
 

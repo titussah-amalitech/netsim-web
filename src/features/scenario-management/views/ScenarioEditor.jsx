@@ -20,6 +20,7 @@ export const ScenarioEditor = () => {
    const fileInputRef = useRef(null)
 
    const [alerts, setAlerts] = useState([])
+   const [errorState, setErrorState] = useState('')
    const [pendingScenario, setPendingScenario] = useState(null)
    const [selectedTool, setSelectedTool] = useState(TOOLS.SELECT)
    const [isEditMode, setIsEditMode] = useState(false)
@@ -194,7 +195,7 @@ export const ScenarioEditor = () => {
             navigate('/scenario-library')
          })
       } else {
-         saveScenario(scenario, dispatch, showAlert, clearScenario)
+         saveScenario(scenario, dispatch, showAlert, clearScenario, setErrorState)
       }
    }, [scenario, dispatch, showAlert, clearScenario, isEditMode, navigate])
 
@@ -396,8 +397,10 @@ export const ScenarioEditor = () => {
                <div className="space-y-6">
                   <ScenarioProperties
                      scenario={scenario}
-                     onUpdateProperty={updateScenarioProperty}
+                     errorState={errorState}
+                     setErrorState={setErrorState}
                      onUpdateMetadata={updateMetadata}
+                     onUpdateProperty={updateScenarioProperty}
                   />
                   <ToolPalette
                      devices={devices}

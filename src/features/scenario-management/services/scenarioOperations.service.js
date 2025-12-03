@@ -7,7 +7,7 @@ export const validateScenario = (scenario) => {
    const errors = [];
 
    if (!scenario.name.trim()) {
-      errors.push('Scenario name is required');
+      errors.push('Scenario name is required.');
    }
 
    if (scenario.devices.length === 0) {
@@ -68,11 +68,11 @@ export const getScenarioStats = (scenario) => {
 };
 
 // Save scenario to server
-export const saveScenario = async (scenario, dispatch, showAlert, clearScenario) => {
+export const saveScenario = async (scenario, dispatch, showAlert, clearScenario, setErrorState) => {
    try {
       const validation = validateScenario(scenario)
       if (!validation.isValid) {
-         showAlert("error", "Save Failed", validation.errors.join("\n"))
+         setErrorState(validation.errors.join("\n"))
          return
       }
 
